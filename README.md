@@ -55,6 +55,7 @@ webclass forget
 ```
 
 `login` saves and verifies the session. `forget` removes the saved local credentials without signing out on the server.
+Server-issued cookie updates preserve existing attempts when using a saved session. A manual login with different credentials does not rebind earlier attempts.
 The CLI does not automate browser or SAML login. Avoid putting cookie values in shell history.
 
 ### Courses and deadlines
@@ -135,6 +136,7 @@ webclass report submit <attempt-id> --yes
 ```
 
 Use the returned attempt ID and actual question numbers. Run `start` only when `open` returns `status: "ready"`.
+`text` saves a question on the current page. Use `report next <attempt-id>` or `report prev <attempt-id>` to reach a question on another page.
 Text is saved immediately; files are uploaded immediately and may replace a previous upload.
 Run `submit` to finish. Report submission has been tested locally with synthetic forms, but has not been verified against a live report assignment.
 
@@ -159,7 +161,9 @@ Unlike `quiz answer`, `save`, `next`, `prev`, and `submit` use HTML field names 
 ```
 
 Omitted fields keep their current values. `show` reads local state without refreshing from the server.
+`start` accepts exactly one attempt ID; use `begin <course-id> <content-id>` to start and collect all questions.
 `abandon` ends local tracking only; it does not cancel or undo a server-side attempt.
+If initial course discovery fails with code `3` (`SESSION_EXPIRED`), refresh the saved cookies with `login` before trying again.
 If a command exits with code `7` (`OPERATION_UNCERTAIN`), check the attempt in WebClass before any further action. Do not automatically resend it.
 
 ### Output and configuration

@@ -89,6 +89,12 @@ export async function learningCommand(kind:string,args:string[]):Promise<{json:u
   if((values.delay!==undefined||values['submit-delay']!==undefined)&&!['answer','submit','run','resume'].includes(action!))throw new UsageError('Submission delay is supported by answer, submit, run, and resume');
   if(!['begin','answer','resume','run','open','start','show','save','next','prev','submit','list','abandon','text','file'].includes(action!))throw new UsageError('Unknown learning action (see quiz --help)');
   if(kind!=='report'&&['text','file'].includes(action!))throw new UsageError('Use the report command for this action');
+  const argumentCount=positionals.length-1;
+  const allowedCounts=action==='run'?[0,2]:[['begin','open'].includes(action!)?2:action==='list'?0:1];
+  if(!allowedCounts.includes(argumentCount)){
+    const usage=['begin','open'].includes(action!)?' <course-id> <content-id>':action==='run'?' [course-id content-id]':action==='list'?'':' <attempt-id>';
+    throw new UsageError(`Usage: webclass ${kind} ${action}${usage}`);
+  }
   if(['begin','answer','open','start','submit','file','abandon'].includes(action!)&&!values.yes)throw new UsageError('This action requires --yes');
   if(!['run','list'].includes(action!)&&!id)throw new UsageError('Provide an ID');
   const store=new AttemptStore(join(stateDir(),'attempts'));
@@ -106,7 +112,7 @@ export async function learningCommand(kind:string,args:string[]):Promise<{json:u
       if(action!=='resume'&&!ctid){const c=await course(service.client,cid!);const choices=c.folders.flatMap(f=>f.contents).filter(c=>c.openable&&/自習|テスト|レポート|アンケート/.test(c.category??''));choices.forEach((c,i)=>io.write(`${i+1}. ${c.name} [${c.category}]`));ctid=choices[Number(await io.ask('Content number: '))-1]?.id;if(!ctid)throw new UsageError('Invalid content number');}
       r=await runInteractive(service,cid??'',ctid??'',io,{attemptId:action==='resume'?id:undefined,submitDelay:delay});
     }finally{rl.close();}
-  }else if(action==='begin'||action==='start'&&content){
+  }else if(action==='begin'){
     if(!content)throw new UsageError('Provide a course ID and content ID');r=await service.begin(id!,content);
   }else if(action==='answer'){
     if(!values.answers)throw new UsageError('Provide all answers as a JSON file with --answers');r=await service.answerAll(id!,await readAnswers(values.answers),delay);
@@ -116,8 +122,10 @@ export async function learningCommand(kind:string,args:string[]):Promise<{json:u
     if(!values.file||!values.question)throw new UsageError('--file and --question are required');r=await service.upload(id!,values.question,values.file);
   }else if(action==='text'){
     if(!values['text-file']||!values.question)throw new UsageError('--text-file and --question are required');
-    const fields=service.show(id!).questions?.find(q=>q.id===values.question)?.fields.filter(f=>f.type==='textarea');
-    if(fields?.length!==1)throw new UsageError('Cannot identify a single text submission field');r=await service.act(id!,'save',{[fields[0]!.name]:await readFile(values['text-file'])});
+    const question=service.show(id!,false).questions?.find(q=>q.id===values.question);
+    if(!question)throw new UsageError('The specified question is not on the current page. Use next or prev to navigate to it before saving text');
+    const fields=question.fields.filter(f=>f.type==='textarea');
+    if(fields.length!==1)throw new UsageError('Cannot identify a single text submission field');r=await service.act(id!,'save',{[fields[0]!.name]:await readFile(values['text-file'])});
   }else r=await service.act(id!,action as Action,await readAnswers(values.answers),delay);
   return {json:r,human:()=>formatAttempt(r)};
 }

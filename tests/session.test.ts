@@ -50,7 +50,7 @@ describe("session storage (XDG)", () => {
   });
   test("gives WEBCLASS_COOKIE precedence over saved cookies", () => {
     saveSession({ S: "file" }, env);
-    expect(resolveCookies(env)).toEqual({ cookies: { S: "file" }, source: "file" });
+    expect(resolveCookies(env)).toEqual({ cookies: { S: "file" }, source: "file", identity: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect(resolveCookies({ ...env, WEBCLASS_COOKIE: "S=env" })).toEqual({ cookies: { S: "env" }, source: "env" });
   });
   test("clear", () => {

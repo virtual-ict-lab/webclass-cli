@@ -1,27 +1,34 @@
 import { loadConfig, type Env } from "./config.ts";
 import { isLoggedInPage, looksLikeLoginPage } from "./detect.ts";
 import { CliError, ExitCode, NotLoggedInError, SessionExpiredError } from "./errors.ts";
-import { WebClassClient, type ClientOptions, type Page } from "./http.ts";
+import { WebClassClient, verifyPage, type ClientOptions, type Page } from "./http.ts";
 import { parseCourse, type Content } from "./parsers/course.ts";
 import { parseCourseList, type CourseListPage } from "./parsers/courses.ts";
-import { resolveCookies, saveSession } from "./session.ts";
+import { resolveCookies, updateSessionCookies } from "./session.ts";
 
 export function makeClient(env: Env = process.env, extra: Partial<ClientOptions> = {}): WebClassClient {
   const cfg = loadConfig(env);
   const resolved = resolveCookies(env);
   if (!resolved) throw new NotLoggedInError();
+  let expected = { cookies: resolved.cookies, identity: resolved.identity! };
   return new WebClassClient({
     baseUrl: cfg.base_url,
     cookies: resolved.cookies,
+    sessionIdentity: resolved.identity,
     // Do not persist cookies supplied through an environment variable.
-    onCookiesUpdated: resolved.source === "file" ? (jar) => saveSession(jar, env) : undefined,
+    onCookiesUpdated: resolved.source === "file" ? (jar) => {
+      const identity = updateSessionCookies(jar, expected, env);
+      expected = { cookies: { ...jar }, identity };
+    } : undefined,
     ...extra,
   });
 }
 
 function requireLoggedIn(page: Page): Page {
-  if (!isLoggedInPage(page.body)) throw new SessionExpiredError({ reason: "No logout link found" });
-  return page;
+  return verifyPage(page, () => {
+    if (!isLoggedInPage(page.body)) throw new SessionExpiredError({ reason: "No logout link found" });
+    return page;
+  });
 }
 
 // ---- status ----
@@ -60,7 +67,7 @@ export interface TermOptions {
  */
 export async function fetchCourseList(client: WebClassClient, term: TermOptions = {}): Promise<CourseListPage> {
   const top = requireLoggedIn(await client.get("index.php"));
-  return switchTerm(client, { ...parseCourseList(top.body), pageUrl: top.url }, top.url, term);
+  return switchTerm(client, verifyPage(top, () => ({ ...parseCourseList(top.body), pageUrl: top.url })), top.url, term);
 }
 
 /** Submit the term form from a fetched course list to retrieve a different term. */
@@ -76,7 +83,7 @@ async function switchTerm(
   const action = new URL(list.formAction ?? "index.php", pageUrl);
   action.search = new URLSearchParams({ year: wantYear, semester: wantSem }).toString();
   const page = requireLoggedIn(await client.get(action));
-  return { ...parseCourseList(page.body), pageUrl: page.url };
+  return verifyPage(page, () => ({ ...parseCourseList(page.body), pageUrl: page.url }));
 }
 
 export function coursesResult(list: CourseListPage) {
@@ -94,11 +101,13 @@ async function enterCourse(client: WebClassClient, list: CourseListPage, id: str
   const link = list.entryLinks.get(id);
   if (!link) return null;
   const page = requireLoggedIn(await client.get(link));
-  const parsed = parseCourse(page.body);
-  if (parsed.course.id && parsed.course.id !== id) {
-    throw new CliError("UNEXPECTED_PAGE", `Received a page for a different course (${parsed.course.id})`, ExitCode.PARSE);
-  }
-  return parsed;
+  return verifyPage(page, () => {
+    const parsed = parseCourse(page.body);
+    if (parsed.course.id && parsed.course.id !== id) {
+      throw new CliError("UNEXPECTED_PAGE", `Received a page for a different course (${parsed.course.id})`, ExitCode.PARSE);
+    }
+    return parsed;
+  });
 }
 
 export async function course(client: WebClassClient, id: string, term: TermOptions = {}) {

@@ -17,6 +17,7 @@ export class AttemptStore {
     if(a.version!==1||a.id!==id)throw new UsageError('Invalid attempt data format');return a;
   }
   write(a:Attempt){const path=this.path(a.id);const temp=`${path}.${process.pid}.tmp`;a.updatedAt=new Date().toISOString();writeFileSync(temp,JSON.stringify(a),{mode:0o600});renameSync(temp,path);}
+  removeUnsent(id:string){rmSync(this.path(id));}
   list(){return readdirSync(this.dir).filter(f=>/^[a-f0-9-]{36}\.json$/.test(f)).map(f=>this.read(f.slice(0,-5)));}
   async locked<T>(fn:()=>Promise<T>):Promise<T>{
     const path=join(this.dir,'operation.lock');

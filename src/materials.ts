@@ -2,7 +2,7 @@ import {parse} from 'node-html-parser';
 import {createHash,randomUUID} from 'node:crypto';
 import {mkdirSync,writeFileSync,readFileSync,linkSync,unlinkSync,lstatSync} from 'node:fs';
 import {basename,join,resolve} from 'node:path';
-import {WebClassClient,type Page} from './http.ts';
+import {WebClassClient,verifyPage,type Page} from './http.ts';
 import {fetchCourseList} from './commands.ts';
 import {parseCourse,type Content} from './parsers/course.ts';
 import {parseForm} from './forms.ts';
@@ -10,18 +10,21 @@ import {AttemptStore} from './attempt-store.ts';
 import {stateDir} from './config.ts';
 import {CliError,ParseError,UsageError,redactUrl} from './errors.ts';
 import {isLoggedInPage} from './detect.ts';
+import {normalizePath} from './urlpolicy.ts';
 
 const DOCUMENT=/\.(?:pdf|docx?|docm|xlsx?|xlsm|pptx?|pptm|txt|csv|zip|epub|mp4|mp3|wav|png|jpe?g|gif)$/i;
-export function parseMaterialLinks(body:string,url:URL){
+export function parseMaterialLinks(body:string,url:URL,baseUrl:URL){
   const root=parse(body);const form=root.querySelector('form[name="TextbookForm"]');
   const base=new URL(root.querySelector('base[href]')?.getAttribute('href')??url.href,url);
+  const courseRoot=normalizePath(baseUrl.pathname).replace(/\/$/,'')+'/data/course/';
   const container=form??root;const links:{url:string;label:string}[]=[];
   for(const el of container.querySelectorAll('a[href],iframe[src],frame[src],embed[src],object[data],img[src],video[src],audio[src],source[src]')){
     const raw=el.getAttribute('href')??el.getAttribute('src')??el.getAttribute('data');if(!raw)continue;
     let target:URL;try{target=new URL(raw,base);}catch{continue;}
     if(!['https:','http:'].includes(target.protocol))continue;
     const wrapper=target.pathname.endsWith('/loadit.php');
-    if(wrapper||target.origin!==url.origin||DOCUMENT.test(target.pathname)||el.tagName==='A'&&el.hasAttribute('download')){
+    const path=normalizePath(target.pathname);const courseAsset=path.startsWith(courseRoot);
+    if(wrapper||target.origin!==baseUrl.origin||courseAsset&&(DOCUMENT.test(path)||el.tagName==='A'&&el.hasAttribute('download'))){
       if(!links.some(l=>l.url===target.href))links.push({url:target.href,label:el.structuredText.trim()||basename(target.pathname)});
     }
   }
@@ -59,7 +62,9 @@ export class MaterialService {
   constructor(readonly client:WebClassClient,dir=join(stateDir(),'attempts'),private options:{progress?:(message:string)=>void}={}){this.store=new AttemptStore(dir);}
   private async coursePage(id:string){
     const list=await fetchCourseList(this.client,{year:'all',semester:'all'});const entry=list.entryLinks.get(id);if(!entry)throw new UsageError('Course not found');
-    const page=await this.client.get(entry);const parsed=parseCourse(page.body);if(parsed.course.id!==id)throw new ParseError('Received a different course');return {page,parsed};
+    const page=await this.client.get(entry);return verifyPage(page,()=>{
+      const parsed=parseCourse(page.body);if(parsed.course.id!==id)throw new ParseError('Received a different course');return {page,parsed};
+    });
   }
   async list(courseId:string){const {parsed}=await this.coursePage(courseId);return {course_id:courseId,materials:parsed.folders.flatMap(f=>f.contents).filter(c=>c.category==='資料')};}
   async download(courseId:string,options:{id?:string;all?:boolean;out:string}){return this.store.locked(async()=>{
@@ -81,43 +86,63 @@ export class MaterialService {
     }
     return {course_id:courseId,materials:results,skipped:options.all?materials.filter(c=>!c.openable).map(c=>({id:c.id,name:c.name,reason:'unavailable'})):[]};
   });}
+  private async navigate<T>(send:()=>Promise<Page>,verify:(page:Page)=>T):Promise<T>{
+    return verifyPage(await send(),verify);
+  }
+  private materialRoot(page:Page,item:Content){
+    const root=parse(page.body);
+    if(root.querySelector('form[name="QuestionForm"]'))throw new ParseError('Received a test instead of a material');
+    const contentIds=[page.url.searchParams.get('set_contents_id')];
+    for(const cfg of root.querySelectorAll('script.js-config[type="application/json"]')){
+      const id=JSON.parse(cfg.text).contents_id;if(id)contentIds.push(String(id));
+    }
+    if(contentIds.some(id=>id&&id!==item.id))throw new ParseError('Received a response for different content');
+    return root;
+  }
+  private materialPage(page:Page,item:Content){
+    this.materialRoot(page,item);
+    const material=parseMaterialLinks(page.body,page.url,this.client.base);const form=material.form;
+    if(!form)throw new ParseError('Unrecognized material content form');
+    if(!material.links.length&&!material.text)throw new ParseError('No recognizable material text or attachments found');
+    return {material,form,key:createHash('sha256').update(page.body).digest('hex')};
+  }
   private async downloadOne(item:Content,url:URL,parent:string):Promise<MaterialResult>{
     const dir=join(parent,safeFilename(`${item.id}-${item.name}`));privateDir(dir);
-    let page=await this.client.get(url);let root=parse(page.body);
-    if(root.querySelector('form[name="QuestionForm"]'))throw new ParseError('Received a test instead of a material');
-    if(!root.querySelector('form[name="TextbookForm"]')){
+    const opened=await this.navigate(()=>this.client.get(url),page=>{
+      const root=this.materialRoot(page,item);
+      if(root.querySelector('form[name="TextbookForm"]'))return {kind:'content' as const,content:this.materialPage(page,item)};
       if(root.querySelector('[data-role="header"] h1')?.text.trim()!=='資料')throw new ParseError('Could not verify the material start page');
       const f=root.querySelector('form');if(!f)throw new ParseError('No material start form found');const form=parseForm(f,page.url);const button=form.buttons.find(b=>b.name==='next'&&b.value==='開始');if(!button)throw new ParseError('No start button found');
-      const data=new URLSearchParams(form.hidden);data.append(button.name,button.value);page=await this.client.post(form.action,data);
-    }
+      const data=new URLSearchParams(form.hidden);data.append(button.name,button.value);return {kind:'start' as const,form,data};
+    });
+    let current=opened.kind==='content'?opened.content:await this.navigate(()=>this.client.post(opened.form.action,opened.data),page=>this.materialPage(page,item));
     const result:MaterialResult={id:item.id,name:item.name,files:[],links:[],pages:0};const visited=new Set<string>();
     const rewind=new Set<string>();
-    while(true){
-      const material=parseMaterialLinks(page.body,page.url);if(!material.previous)break;
-      if(!material.form)throw new ParseError('Unrecognized material content form');
-      const key=createHash('sha256').update(page.body).digest('hex');
-      if(rewind.has(key)||rewind.size>=100)throw new ParseError('Could not return to the first material page');rewind.add(key);
-      const body=new URLSearchParams(material.form.hidden);body.set('TxtbkSession[cmd]','prevPage');body.set('TxtbkSession[cmdData]','');
-      page=await this.client.post(material.form.action,body);
+    while(current.material.previous){
+      if(rewind.size>=100)throw new ParseError('Could not return to the first material page');rewind.add(current.key);
+      const body=new URLSearchParams(current.form.hidden);body.set('TxtbkSession[cmd]','prevPage');body.set('TxtbkSession[cmdData]','');
+      current=await this.navigate(()=>this.client.post(current.form.action,body),page=>{
+        const next=this.materialPage(page,item);
+        if(rewind.has(next.key))throw new ParseError('Could not return to the first material page');return next;
+      });
     }
     const seenPages=new Set<string>();
     while(true){
-      const contentIds=[page.url.searchParams.get('set_contents_id')];
-      for(const cfg of parse(page.body).querySelectorAll('script.js-config[type="application/json"]')){
-        const id=JSON.parse(cfg.text).contents_id;if(id)contentIds.push(String(id));
-      }
-      if(contentIds.some(id=>id&&id!==item.id))throw new ParseError('Received a response for different content');
-      const material=parseMaterialLinks(page.body,page.url);if(!material.form)throw new ParseError('Unrecognized material content form');
-      const key=createHash('sha256').update(page.body).digest('hex');if(seenPages.has(key)||seenPages.size>=100)throw new ParseError('Could not verify material page navigation');seenPages.add(key);result.pages++;
+      const {material,form,key}=current;seenPages.add(key);result.pages++;
       for(const link of material.links)await this.fetchAttachment(new URL(link.url),link.label,dir,result,visited,0);
       if(!material.links.length&&material.text)result.files.push(saveFile(dir,`page-${result.pages}.txt`,new TextEncoder().encode(material.text)));
-      if(!material.links.length&&!material.text)throw new ParseError('No recognizable material text or attachments found');
-      const body=new URLSearchParams(material.form.hidden);body.set('TxtbkSession[cmd]',material.next?'nextPage':'finish');body.set('TxtbkSession[cmdData]','');
-      page=await this.client.post(material.form.action,body,{stopAtLogin:!material.next});
+      const body=new URLSearchParams(form.hidden);body.set('TxtbkSession[cmd]',material.next?'nextPage':'finish');body.set('TxtbkSession[cmdData]','');
       if(!material.next){
-        if(!page.stoppedAtLogin&&!isLoggedInPage(page.body))throw new ParseError('Files were saved, but material completion could not be verified');
+        await this.navigate(()=>this.client.post(form.action,body,{stopAtLogin:true}),page=>{
+          if(!page.stoppedAtLogin&&!isLoggedInPage(page.body))throw new ParseError('Files were saved, but material completion could not be verified');
+        });
         break;
       }
+      if(seenPages.size>=100)throw new ParseError('Could not verify material page navigation');
+      current=await this.navigate(()=>this.client.post(form.action,body),page=>{
+        const next=this.materialPage(page,item);
+        if(seenPages.has(next.key))throw new ParseError('Could not verify material page navigation');return next;
+      });
     }
     return result;
   }
@@ -127,7 +152,7 @@ export class MaterialService {
     const file=await this.client.getResource(url);
     if(!file.data){
       if(!url.pathname.endsWith('/loadit.php'))throw new ParseError('Received HTML instead of an attachment');
-      const links=parseMaterialLinks(file.body,file.url).links;
+      const links=parseMaterialLinks(file.body,file.url,this.client.base).links;
       if(!links.length)throw new ParseError('No file links found in the PDF viewer');
       for(const link of links)await this.fetchAttachment(new URL(link.url),link.label,dir,result,seen,depth+1);return;
     }

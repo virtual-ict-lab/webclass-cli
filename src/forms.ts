@@ -1,4 +1,4 @@
-import {type HTMLElement} from 'node-html-parser';
+import {TextNode,type HTMLElement} from 'node-html-parser';
 import {ParseError, UsageError} from './errors.ts';
 
 export interface Field {
@@ -13,6 +13,14 @@ export interface Form {
 }
 export type Answers=Record<string,string|string[]>;
 const num=(v:string|undefined):number|null=>v!==undefined&&/^\d+$/.test(v)?Number(v):null;
+export function normalizeTextareaValue(value:string):string {
+  return value.replace(/\r\n?/g,'\n');
+}
+function parseTextareaValue(input:HTMLElement):string {
+  // HTML normalizes source newlines before decoding references and skipping one initial LF token.
+  const text=new TextNode(normalizeTextareaValue(input.rawText)).text;
+  return normalizeTextareaValue(text.startsWith('\n')?text.slice(1):text);
+}
 export function parseForm(el:HTMLElement,url:URL):Form {
   if((el.getAttribute('method')??'get').toLowerCase()!=='post')throw new ParseError('No POST form found');
   if(el.querySelector('mobile-select-box'))throw new ParseError('Dynamic choice questions are not supported');
@@ -43,7 +51,7 @@ export function parseForm(el:HTMLElement,url:URL):Form {
       field.values=options.filter(o=>o.hasAttribute('selected')).map(o=>o.getAttribute('value')??o.text);
       if(!input.hasAttribute('multiple')&&field.values.length===0&&field.options[0])field.values=[field.options[0].value];
       if(input.hasAttribute('multiple'))field.type='multiselect';
-    }else if(type!=='file')field.values=[type==='textarea'?input.text:value];
+    }else if(type!=='file')field.values=[type==='textarea'?parseTextareaValue(input):value];
   }
   return form;
 }

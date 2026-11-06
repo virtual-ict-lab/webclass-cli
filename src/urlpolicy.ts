@@ -96,6 +96,16 @@ export function assertAllowed(target: URL, base: URL): void {
   if (!r.ok) throw new BlockedUrlError(redactUrl(target.pathname + target.search), r.reason);
 }
 
+/** Classify an already-allowed request before sending it, including every redirect hop. */
+export function mayChangeRemoteState(target: URL, base: URL, method: 'GET'|'POST'): boolean {
+  if (method === 'POST') return true;
+  if (checkUrl(target, base).ok) return false;
+  const root = normalizePath(base.pathname).replace(/\/$/, '') + '/';
+  const relative = normalizePath(target.pathname).slice(root.length);
+  // Attachments, viewers, and result lookups do not start or save an attempt.
+  return !/^(?:data\/course\/|loadit\.php$|mbl\.php\/question_results(?:\/answer)?\/?$)/.test(relative);
+}
+
 /** Routes observed during live learning operations. Keep these separate because GET requests can also change state. */
 export function assertLearningAllowed(target: URL, base: URL, method: "GET" | "POST"): void {
   const full = normalizePath(target.pathname);

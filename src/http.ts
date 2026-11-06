@@ -1,9 +1,8 @@
-import { createHash } from "node:crypto";
 import { isLoginUrl } from "./detect.ts";
 import { BlockedUrlError, CliError, HttpError, OperationUncertainError, SessionExpiredError, ParseError, redactUrl } from "./errors.ts";
 import type { CookieJar } from "./session.ts";
-import { serializeCookies } from "./session.ts";
-import { assertAllowed, assertLearningAllowed, assertMaterialAllowed } from "./urlpolicy.ts";
+import { cookieFingerprint, serializeCookies } from "./session.ts";
+import { assertAllowed, assertLearningAllowed, assertMaterialAllowed, mayChangeRemoteState } from "./urlpolicy.ts";
 import { VERSION } from "./version.ts";
 
 export const USER_AGENT = `webclass-cli/${VERSION} (study CLI)`;
@@ -14,6 +13,8 @@ export interface ClientOptions {
   baseUrl: string;
   access?: "read" | "learning" | "materials";
   cookies: CookieJar;
+  /** Persisted identity retained only across server-issued cookie updates. */
+  sessionIdentity?: string;
   fetch?: FetchLike;
   /** Minimum interval in milliseconds from the previous response to the next request; at least 1000 ms. */
   minIntervalMs?: number;
@@ -52,6 +53,17 @@ export interface Page {
   data?: Uint8Array;
   contentDisposition?: string;
   stoppedAtLogin?: boolean;
+  /** Whether this request chain sent a state-changing request before receiving this page. */
+  stateChangeSent?: boolean;
+}
+
+/** Keep response parsing in the same uncertainty boundary as its request chain. */
+export function verifyPage<T>(page: Page, inspect: (page: Page) => T): T {
+  try { return inspect(page); }
+  catch (error) {
+    if (page.stateChangeSent) throw error instanceof OperationUncertainError ? error : new OperationUncertainError();
+    throw error;
+  }
 }
 
 /**
@@ -78,12 +90,13 @@ export class WebClassClient {
   private queue: Promise<unknown> = Promise.resolve();
   private lastRequestEnd = Number.NEGATIVE_INFINITY;
   requestCount = 0;
+  mutationCount = 0;
 
   constructor(opts: ClientOptions) {
     this.base = new URL(opts.baseUrl);
     this.access = opts.access ?? "read";
     this.jar = { ...opts.cookies };
-    this.sessionFingerprint = createHash("sha256").update(opts.cookies.WBT_Session ?? serializeCookies(opts.cookies)).digest("hex");
+    this.sessionFingerprint = opts.sessionIdentity ?? cookieFingerprint(opts.cookies);
     this.fetchImpl = opts.fetch ?? ((i, init) => fetch(i, init));
     const interval = opts.minIntervalMs ?? 1000;
     this.minInterval = opts.unsafeAllowShortInterval ? interval : Math.max(this.access !== "read" ? 2000 : 1000, interval);
@@ -112,8 +125,10 @@ export class WebClassClient {
 
   async getBytes(target: string | URL): Promise<Page & {data:Uint8Array}> {
     const page=await this.getResource(target);
-    if(!page.data)throw new ParseError("Received HTML instead of a file");
-    return page as Page & {data:Uint8Array};
+    return verifyPage(page,()=>{
+      if(!page.data)throw new ParseError("Received HTML instead of a file");
+      return page as Page & {data:Uint8Array};
+    });
   }
 
   /** Distinguish attachment bytes from an HTML viewer without corrupting binary data. */
@@ -123,10 +138,13 @@ export class WebClassClient {
 
   private enqueue(target: string | URL, method: "GET" | "POST", body?: URLSearchParams | FormData, binary=false, stopAtLogin=false): Promise<Page> {
     const run = async () => {
-      const before = this.requestCount;
-      try { return await this.doRequest(this.resolve(target), method, body, binary, stopAtLogin); }
+      const before = this.mutationCount;
+      try {
+        const page = await this.doRequest(this.resolve(target), method, body, binary, stopAtLogin);
+        return { ...page, stateChangeSent: this.mutationCount > before };
+      }
       catch (e) {
-        if (this.access !== "read" && this.requestCount > before) throw new OperationUncertainError();
+        if (this.mutationCount > before) throw new OperationUncertainError();
         throw e;
       }
     };
@@ -163,21 +181,19 @@ export class WebClassClient {
         continue;
       }
       const contentType=res.headers.get("content-type")??"";
+      if (res.status === 401 || res.status >= 400) {
+        await res.body?.cancel().catch(() => undefined);
+        if (res.status === 401) throw new SessionExpiredError({ status: 401 });
+        throw new HttpError(`HTTP ${res.status}`, { status: res.status, url: redactUrl(url.pathname + url.search) });
+      }
       let data:Uint8Array|undefined;
       let responseBody:string;
+      const bytes=await this.readResponseBytes(res);
       if(binary){
-        const chunks:Uint8Array[]=[];let size=0;const reader=res.body?.getReader();
-        if(reader)try{while(true){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>this.maxResponseBytes){await reader.cancel();throw new HttpError("File exceeds the maximum size");}chunks.push(part.value);}}finally{reader.releaseLock();}
-        const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
         const prefix=new TextDecoder().decode(bytes.subarray(0,512)).trimStart();
         if(/html/i.test(contentType)||/^<(?:!doctype|html|script|head|body)/i.test(prefix))responseBody=new TextDecoder().decode(bytes);
         else {data=bytes;responseBody='';}
-      }else responseBody=await res.text();
-      this.lastRequestEnd = this.now();
-      if (res.status === 401) throw new SessionExpiredError({ status: 401 });
-      if (res.status >= 400) {
-        throw new HttpError(`HTTP ${res.status}`, { status: res.status, url: redactUrl(url.pathname + url.search) });
-      }
+      }else responseBody=new TextDecoder().decode(bytes);
       // WebClass uses HTTP 200 with JavaScript (location.href=...) for navigation. Treat small jump pages as redirects.
       const jump = jsJumpTarget(responseBody);
       if (jump !== null) {
@@ -195,6 +211,34 @@ export class WebClassClient {
     throw new HttpError("Too many redirects", { url: redactUrl(start.pathname) });
   }
 
+  private async readResponseBytes(res: Response): Promise<Uint8Array> {
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    const reader = res.body?.getReader();
+    try {
+      if (reader) while (true) {
+        const part = await reader.read();
+        if (part.done) break;
+        size += part.value.byteLength;
+        if (size > this.maxResponseBytes) {
+          await reader.cancel().catch(() => undefined);
+          throw new HttpError('Response exceeds the maximum size');
+        }
+        chunks.push(part.value);
+      }
+      const bytes = new Uint8Array(size);
+      let offset = 0;
+      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+      return bytes;
+    } catch (error) {
+      if (error instanceof CliError) throw error;
+      throw new HttpError('Could not read the response body');
+    } finally {
+      reader?.releaseLock();
+      this.lastRequestEnd = this.now();
+    }
+  }
+
   private async waitTurn(): Promise<void> {
     const jitter = this.access !== "read" ? Math.floor(Math.max(0, Math.min(1, this.random())) * 1000) : 0;
     const wait = this.lastRequestEnd + this.minInterval + jitter - this.now();
@@ -209,6 +253,7 @@ export class WebClassClient {
       let res: Response;
       try {
         this.requestCount++;
+        if (mayChangeRemoteState(url, this.base, method)) this.mutationCount++;
         res = await this.fetchImpl(url.href, {
           method,
           body,
@@ -229,7 +274,8 @@ export class WebClassClient {
         continue;
       }
       this.lastRequestEnd = this.now();
-      this.absorbSetCookie(res);
+      try { this.absorbSetCookie(res); }
+      catch (error) { await res.body?.cancel().catch(() => undefined); throw error; }
       if ((res.status >= 500 || res.status === 429) && attempt < retries) {
         await res.body?.cancel().catch(() => undefined);
         await this.sleep(1000 * (attempt + 1));

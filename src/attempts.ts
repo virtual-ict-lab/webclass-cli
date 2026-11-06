@@ -4,8 +4,8 @@ import {parse} from 'node-html-parser';
 import {stateDir} from './config.ts';
 import {fetchCourseList} from './commands.ts';
 import {CliError,ExitCode,OperationUncertainError,UsageError,ParseError} from './errors.ts';
-import {type Page,WebClassClient} from './http.ts';
-import {buildFormBody,type Answers} from './forms.ts';
+import {type Page,WebClassClient,verifyPage} from './http.ts';
+import {buildFormBody,normalizeTextareaValue,type Answers} from './forms.ts';
 import {parseAttempt,type AttemptPage} from './parsers/attempt.ts';
 import {AttemptStore,type Attempt} from './attempt-store.ts';
 export type Action='start'|'save'|'next'|'prev'|'submit';
@@ -32,11 +32,14 @@ export class AttemptService {
     const list=await fetchCourseList(this.client,{year:'all',semester:'all'});
     const entry=list.entryLinks.get(courseId);if(!entry)throw new UsageError('Course is not in the list');
     const course=await this.client.get(entry);
-    const root=parse(course.body);
-    const link=root.querySelectorAll('a[href]').find(el=>{
-      try{const u=new URL(el.getAttribute('href')!,course.url);return u.pathname.endsWith('/do_contents.php')&&u.searchParams.get('set_contents_id')===contentId;}catch{return false;}
+    const link=verifyPage(course,()=>{
+      const root=parse(course.body);
+      const link=root.querySelectorAll('a[href]').find(el=>{
+        try{const u=new URL(el.getAttribute('href')!,course.url);return u.pathname.endsWith('/do_contents.php')&&u.searchParams.get('set_contents_id')===contentId;}catch{return false;}
+      });
+      if(!link)throw new UsageError('Content is missing or unavailable');
+      return link;
     });
-    if(!link)throw new UsageError('Content is missing or unavailable');
     const a:Attempt={version:1,id:randomUUID(),base:this.client.base.href,identity:this.client.sessionFingerprint,courseId,contentId,status:'pending',url:new URL(link.getAttribute('href')!,course.url).href,updatedAt:''};
     this.store.write(a);
     return this.perform(a,()=>this.client.get(a.url));
@@ -58,6 +61,7 @@ export class AttemptService {
     return this.perform(a,async()=>{if(action==='submit')await this.waitForSubmit(delay);return this.client.post(form.action,body);}, action, answers);
   }
   private async perform(a:Attempt,send:()=>Promise<Page>, action?:Action, answers:Answers={}){
+    const before=this.client.mutationCount;const previousStatus=a.status;
     a.status='pending';this.store.write(a);
     try{
       const page=await send();
@@ -72,13 +76,31 @@ export class AttemptService {
         if(parsed.kind!=='questions')throw new ParseError('Could not verify the question page after saving');
         for(const [name,value] of Object.entries(answers)){
           const field=parsed.form?.fields.find(f=>f.name===name);const values=Array.isArray(value)?value:[value];
-          if(!field||JSON.stringify([...field.values].sort())!==JSON.stringify([...values].sort()))throw new ParseError('Could not verify that the saved answers match');
+          const normalized=(items:string[])=>items.map(value=>field?.type==='textarea'?normalizeTextareaValue(value):value).sort();
+          if(!field||JSON.stringify(normalized(field.values))!==JSON.stringify(normalized(values)))throw new ParseError('Could not verify that the saved answers match');
         }
       }
       if(a.catalog&&parsed.kind==='questions'){const i=a.catalog.findIndex(p=>p.page===parsed.page);if(i>=0)a.catalog[i]=parsed;}
       a.url=page.url.href;a.page=parsed;a.status=parsed.kind==='start'?'ready':parsed.kind==='result'?'submitted':'active';this.store.write(a);
       return publicAttempt(a);
-    }catch(e){a.status='uncertain';this.store.write(a);throw e instanceof OperationUncertainError?e:new OperationUncertainError();}
+    }catch(e){return this.failOperation(a,previousStatus,before,e);}
+  }
+  private failOperation(a:Attempt,previousStatus:Attempt['status'],before:number,error:unknown):never {
+    if(this.client.mutationCount>before||error instanceof OperationUncertainError){
+      a.status='uncertain';this.store.write(a);throw error instanceof OperationUncertainError?error:new OperationUncertainError();
+    }
+    // An unsent open has no remote attempt to track. Existing attempts retain their confirmed state.
+    if(previousStatus==='pending'&&!a.page)this.store.removeUnsent(a.id);
+    else {a.status=previousStatus;this.store.write(a);}
+    throw error;
+  }
+  private failBatch(id:string,error:unknown):never {
+    const a=this.store.read(id);
+    if(a.status==='pending'||a.status==='uncertain'||error instanceof OperationUncertainError){
+      a.status='uncertain';this.store.write(a);throw error instanceof OperationUncertainError?error:new OperationUncertainError();
+    }
+    // A local validation failure leaves the last confirmed page usable, but invalidates the partial catalog.
+    delete a.batch;delete a.catalog;this.store.write(a);throw error;
   }
   private async waitForSubmit(seconds:number){
     if(seconds>0){this.options.progress?.(`Answers saved. Waiting ${seconds} seconds before submission.`);await (this.options.sleep??Bun.sleep)(seconds*1000);}
@@ -114,14 +136,14 @@ export class AttemptService {
       a=this.store.read(a.id);
       if(a.page?.page!==a.catalog![0]!.page)throw new ParseError('Could not verify the first page');
       a.batch='done';this.store.write(a);return publicAttempt(a,true);
-    }catch{a=this.store.read(a.id);a.status='uncertain';this.store.write(a);throw new OperationUncertainError();}
+    }catch(error){return this.failBatch(a.id,error);}
   });}
   async answerAll(id:string,input:Record<string,unknown>,delay=0){return this.store.locked(async()=>{
     validateDelay(delay);let a=this.checked(id);
     if(a.status!=='active'||!a.page?.form)throw new UsageError('Fetch the question list with begin');
     if(!input||typeof input!=='object'||Array.isArray(input))throw new UsageError('Answers must be a JSON object keyed by question ID');
     const pages=a.catalog??[a.page];
-    if(!a.catalog&&a.page.navigation?.next)throw new UsageError('Use begin to fetch all questions in content with multiple pages');
+    if(!a.catalog&&(a.page.navigation?.next||a.page.navigation?.previous||(a.page.page??1)!==1))throw new UsageError('A complete question catalog is required for batch answers. Use begin for supported content or proceed with page-by-page operations');
     if(a.page.branching||a.page.page!==pages[0]!.page)throw new UsageError('Submit batch answers from the first page of non-branching content');
     const questions=pages.flatMap(p=>p.questions);
     if(Object.keys(input).length!==questions.length||questions.some(q=>!Object.hasOwn(input,q.id)))throw new UsageError('Provide every question ID and answer (questions are missing or extra)');
@@ -153,7 +175,7 @@ export class AttemptService {
       a=this.store.read(id);a.batch='waiting';this.store.write(a);
       await this.actLocked(id,'submit',{},true,delay);
       a=this.store.read(id);a.batch='done';this.store.write(a);return publicAttempt(a);
-    }catch{a=this.store.read(id);a.status='uncertain';this.store.write(a);throw new OperationUncertainError();}
+    }catch(error){return this.failBatch(id,error);}
   });}
   async upload(id:string,question:string,path:string){return this.store.locked(async()=>{
     const a=this.checked(id);if(a.status!=='active')throw new UsageError('Start the attempt first');
@@ -168,12 +190,13 @@ export class AttemptService {
     if(['doc','docx','xls','xlsx','ppt','pptx'].includes(ext)&&size<1000)throw new UsageError('Office file is too small');
     const data=new FormData();data.append('set_contents_id',a.contentId);data.append('question_no',question);data.append('upload_file',file,name);
     const url=new URL('mbl.php/questions/api',this.client.base);url.searchParams.set('api','upload');url.searchParams.set('set_contents_id',a.contentId);
+    const before=this.client.mutationCount;const previousStatus=a.status;
     a.status='pending';this.store.write(a);
     try{
       const response=await this.client.post(url,data);const receipt=JSON.parse(response.body);
       if(receipt.status!=='OK'||typeof receipt.file?.name!=='string')throw new ParseError('Could not verify file receipt');
       a.uploads=[...(a.uploads??[]).filter(f=>f.question!==question),{question,name:receipt.file.name}];a.status='active';this.store.write(a);return publicAttempt(a);
-    }catch{a.status='uncertain';this.store.write(a);throw new OperationUncertainError();}
+    }catch(error){return this.failOperation(a,previousStatus,before,error);}
   });}
 }
 

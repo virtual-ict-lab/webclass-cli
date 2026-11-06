@@ -64,7 +64,7 @@ test('binary download preserves bytes and bounds response size',async()=>{
  const client=new WebClassClient({baseUrl:BASE,cookies:{},access:'materials',sleep:async()=>{},maxResponseBytes:10,fetch:async()=>new Response(bytes,{headers:{'content-type':'application/pdf'}})});
  expect((await client.getBytes('data/course/00/c/file.pdf')).data).toEqual(bytes);
  const small=new WebClassClient({baseUrl:BASE,cookies:{},access:'materials',maxResponseBytes:2,fetch:async()=>new Response(bytes)});
- await expect(small.getBytes('data/course/00/c/file.pdf')).rejects.toMatchObject({code:'OPERATION_UNCERTAIN'});
+ await expect(small.getBytes('data/course/00/c/file.pdf')).rejects.toMatchObject({code:'HTTP_ERROR'});
 });
 test('HTML login response cannot be saved as a file',async()=>{
  const client=new WebClassClient({baseUrl:BASE,cookies:{},access:'materials',fetch:async()=>html('<html><form action="login.php"><input type="password"></form></html>')});

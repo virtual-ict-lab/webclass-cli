@@ -8,7 +8,7 @@ export interface AttemptPage {
   score?:number;total?:number;summary?:string;remaining_seconds?:number;page?:number;
 }
 export function parseAttempt(html:string,url:URL):AttemptPage {
-  const root=parse(html);const title=root.querySelector('.wcl_pageMainTitle')?.text.trim()??'';
+  const root=parse(html,{blockTextElements:{script:true,noscript:true,style:true,pre:true,textarea:true}});const title=root.querySelector('.wcl_pageMainTitle')?.text.trim()??'';
   const el=root.querySelector('form[name="QuestionForm"]');
   if(el){
     const form=parseForm(el,url);

@@ -11,7 +11,7 @@ webclass quiz begin <course-id> <content-id> --yes --pretty
 ```
 
 `begin` starts the quiz, traverses all pages, and returns to the first page.
-`quiz start <course-id> <content-id> --yes` is an alias.
+`start` accepts exactly one existing attempt ID; it is not an alias for `begin`.
 Keep the returned `attempt_id`; do not start another attempt to obtain an ID again.
 
 Read every returned `questions` entry: `id`, `text`, `images` (`url`, `alt`), and `fields`.
@@ -45,6 +45,7 @@ The CLI waits a random 2-3 seconds after each learning response before the next 
 
 Branching questions, pages that cannot be revisited, and unrecognized dynamic question widgets are unsupported.
 If the CLI refuses them, stop and use the browser for the unsupported work; do not silently omit questions.
+If `begin` returns `PARSE_ERROR` while cached status remains `active`, the last confirmed page is available for supported page-by-page operations. Inspect `show` first. The partial catalog is discarded; do not use `answer` for an incomplete multi-page catalog.
 
 ## Page-by-page operations
 
@@ -83,6 +84,7 @@ webclass report submit <attempt-id> --yes
 ```
 
 Use the returned ID and actual question numbers. Run `start` only for `ready` state.
+`text` accepts questions on the current page only. Use `report next <attempt-id>` or `report prev <attempt-id>` to reach a question on another page before saving its text.
 `text` immediately saves the question's single textarea. `file` immediately uploads and checks a receipt, and may replace an existing upload.
 File format and size constraints come from the form. An upload receipt alone is not final submission: finish with `submit` and inspect the confirmed result.
 The final result must have `status: "submitted"`; report the returned `summary`. An `active` state is not confirmation, and report assignments may have no numeric grade.
@@ -101,6 +103,10 @@ For textareas, `@report.txt` loads multiline text. Empty input keeps the current
 `quit` discards unsent input but retains the local attempt. It does not undo earlier saves or uploads.
 
 ## Uncertain or interrupted operations
+
+Initial read-only discovery can return exit 3 (`SESSION_EXPIRED`) before opening content. Refresh cookies with `webclass login --stdin`, then retry discovery. A safe read retains its original error code; exit 7 applies when a state-changing request was sent and its result could not be verified.
+
+Server-issued cookie rotation preserves an attempt's identity across processes when using the saved session. A manual login with different credentials does not rebind earlier attempts. `WEBCLASS_COOKIE` overrides do not inherit the saved identity. If the session differs, check the earlier attempt in WebClass instead of editing local state to force a match.
 
 On exit 7 (`OPERATION_UNCERTAIN`), or local `pending`/`uncertain` state, stop sending learning requests.
 Inspect `quiz list` / `quiz show <attempt-id>` for cached context, then check the attempt in WebClass through the browser.
