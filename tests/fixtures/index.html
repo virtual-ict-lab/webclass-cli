@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0">    <title>コースリスト - WebClass</title>
+    <script class="js-config" type="application/json">{"TOP_URL":"\/webclass\/","language":"JAPANESE","feature.message":true,"feature.information":1}</script>
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <div class="navbar-brand">
+                    <a class="course-webclass" href="/webclass/">WebClass</a>
+                </div>
+            </div>
+            <ul class="nav navbar-nav navbar-right  hidden-xs">
+                <li id="notification-dropdown-area" class="dropdown">
+                                    <a id="notification-dropdown-icon" class="dropdown-toggle disabled"
+                       href="/webclass/messages.php/inbox?acs_=00000000"
+                       onclick="return openMessageWindow('/webclass/messages.php/inbox?acs_=00000000')"
+                       target="msgeditor" aria-haspopup="true" aria-expanded="true">
+                        <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+                        <span id="js-unread-message-count" class="badge hidden hd-notification_badge"></span>
+                    </a>
+                                    </li>
+                <li class="dropdown">
+                    <a href="" class="dropdown-toggle" data-toggle="dropdown" style="padding: 10px;" title="アカウントメニュー">
+                        <span>00_0XX00:匿名　太郎</span>
+                        <img width="30" src="/webclass/user.php/identicon.png" style="border: solid #ffffff; background: #ffffff"></a>
+                    <ul class="dropdown-menu">
+                        <li class=""><a class="account-menu__menu__link" href="/webclass/login.php?top_menu=1&amp;acs_=00000000"  >コースリスト</a></li><li class="divider"></li><li class=""><a class="account-menu__menu__link" href="/webclass/user.php/config?acs_=00000000" target="AccountAlt" onclick="openPopupWindow('/webclass/user.php/config?acs_=00000000','AccountAlt', 1024, 800)">アカウント情報の変更</a></li>                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="container" >
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="nav navbar-nav navbar-right"><li><a href="/webclass/logout.php?acs_=00000000">ログアウト</a></li><li class="nav-divider"></li></ul>                <ul class="nav navbar-nav navbar-left">
+                    <li class="dropdown active"><a href="" class="dropdown-toggle" data-toggle="dropdown">コース<span class="caret"></span></a><ul class="dropdown-menu"><li><a href="/webclass/index.php/?acs_=00000000" ><i class="fa  fa-fw" aria-hidden="true"></i>&nbsp;コースリスト</a></li><li><a href="/webclass/index.php/courses/?acs_=00000000" ><i class="fa  fa-fw" aria-hidden="true"></i>&nbsp;参加可能なコース</a></li></ul></li>                </ul>
+                <ul class="nav navbar-nav navbar-left visible-xs-block">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown">00_0XX00:匿名　太郎<span class="caret"></span></a>
+                    </li>
+                                        <li>
+                        <a href="/webclass/messages.php/inbox?acs_=00000000" target="msgeditor">メッセージ                            <span id="mobile-menu-message-badge" class="badge hidden hd-mobileMenu_messageBadge"></span>
+                        </a>
+                    </li>
+                                                            <li class="hidden-sm hidden-md hidden-lg">
+                        <a href="/webclass/information.php/?acs_=00000000" target="msgeditor">お知らせ                            <span id="mobile-menu-information-badge" class="badge hidden hd-mobileMenu_informationBadge"></span>
+                        </a>
+                    </li>
+                                    </ul>
+            </div>
+        </div>
+    </nav>
+    </header>
+<main id="js-main">
+<div class="container">
+    <div class="row">
+        <div class="col-sm-3">
+                <div id="plugin-links"
+                     data-url="/webclass/index.php/plugin-links?acs_=00000000"
+                     data-has-static-content="0"
+                     aria-live="polite">
+                </div>
+                            </div>
+        <div class="col-sm-9">
+    <div id="UserTopInfo">
+        <h4 class="page-header">管理者からのお知らせ</h4>
+        <div id="NewestInformations" >
+            <div id='AjaxInfoBox'><div class="infopkg">
+<ul class="info-list info-short-list">
+    <li class="head bgc_main">
+    最新5件     (全 0 件)
+     </li>
+<li class="" style="padding-left:2em;">お知らせはありません</li></ul>
+</div>
+</div>
+            <p align="right" style="margin: 0.5em;" >
+                <span class="hidden-xs ">
+                    <a href="/webclass/information.php/?acs_=00000000" target="msgeditor" onclick="return openMessage('/webclass/information.php/?acs_=00000000')">&raquo; お知らせ一覧</a>
+                </span>
+            </p>
+        </div>
+    </div>
+                    <h3 class="page-header">参加しているコース</h3>
+                <form action="/webclass/index.php?acs_=00000000" name="condition" autocomplete="off" class="form-inline">
+                                        <h4>表示する学期</h4>
+                                        <div>
+                                                    <select name="year" onChange = "javascript:document.condition.submit()" class="form-control">
+                                <option value="all"  >All</option>
+                                <option value='2027'  >2027</option><option value='2026' selected >2026</option><option value='2025'  >2025</option><option value='2024'  >2024</option><option value='2023'  >2023</option><option value='2022'  >2022</option><option value='2021'  >2021</option><option value='2020'  >2020</option>                            </select>
+                            <select name="semester" onChange = "javascript:document.condition.submit()" class="form-control">
+                                <option value="all"  >All</option>
+                                <option VALUE="1">前期</option><option SELECTED VALUE="2">後期</option><option VALUE="3">開講期間外</option>                            </select>
+                                                </div>
+                        <h4 style="margin-top: 2em;border-top: 1px solid #eee;padding-top: 1em;">時間割表</h4>
+                        <div class=" table-responsive hidden-xs">
+                            <table class="schedule-table" id="schedule-table">
+                                <thead>
+                                <tr>
+                                    <th class=""></th>
+                                    <th height='30' nowrap class=''>月曜日</th><th height='30' nowrap class=''>月曜日</th><th height='30' nowrap class=''>水曜日</th><th height='30' nowrap class=''>水曜日</th><th height='30' nowrap class='active'>金曜日</th><th height='30' nowrap class=''>土曜日</th>                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr data-class_order="1"><td height="55" nowrap class='schedule-table-class_order'>1限</td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="2"><td height="55" nowrap class='schedule-table-class_order'>2限</td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="3"><td height="55" nowrap class='schedule-table-class_order'>3限</td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="4"><td height="55" nowrap class='schedule-table-class_order'>4限</td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="5"><td height="55" nowrap class='schedule-table-class_order'>5限</td><TD align="left" valign="top" class=''><div><a href='/webclass/course.php/00x_000001/login?acs_=00000000' Target='_top'>&raquo; 00x_サンプル科目A</a></div></TD><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="6"><td height="30" nowrap class='schedule-table-class_order'>6限</td><TD align="left" valign="top" class=''><div><a href='/webclass/course.php/00x_000001/login?acs_=00000000' Target='_top'>&raquo; 00x_サンプル科目A</a></div></TD><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="7"><td height="30" nowrap class='schedule-table-class_order'>7限</td><td class='blank'><BR></td><td class='blank'><BR></td><TD align="left" valign="top" class=''><div><a href='/webclass/course.php/00x_000001/login?acs_=00000000' Target='_top'>&raquo; 00x_サンプル科目A</a></div></TD><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="8"><td height="30" nowrap class='schedule-table-class_order'>8限</td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="9"><td height="30" nowrap class='schedule-table-class_order'>9限</td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr><tr data-class_order="10"><td height="30" nowrap class='schedule-table-class_order'>10限</td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='blank'><BR></td><td class='active-blank'><BR></td><td class='blank'><BR></td></tr>                                </tbody>
+                            </table>
+                        </div>
+                        <div class="visible-xs list-group schedule-list">
+                            <div class="list-group-item list-group-label-item">月曜日</div><div class="list-group-item class-order">5限</div><a class="list-group-item course" href="/webclass/course.php/00x_000001/login?acs_=00000000"><h4 class='list-group-item-heading'>&raquo; 00x_サンプル科目A</h4><div class="list-group-item-text"></div></a><div class="list-group-item class-order">6限</div><a class="list-group-item course" href="/webclass/course.php/00x_000001/login?acs_=00000000"><h4 class='list-group-item-heading'>&raquo; 00x_サンプル科目A</h4><div class="list-group-item-text"></div></a><div class="list-group-item list-group-label-item">水曜日</div><div class="list-group-item class-order">7限</div><a class="list-group-item course" href="/webclass/course.php/00x_000001/login?acs_=00000000"><h4 class='list-group-item-heading'>&raquo; 00x_サンプル科目A</h4><div class="list-group-item-text"></div></a>                        </div>
+                                                <div align="right" style="margin-top: 0.5em;">
+                            <a href="/webclass/index.php/courses/?acs_=00000000"
+                               class="btn btn-default">コースを追加</a>
+                        </div>
+                                        </form>
+                                    </div>
+    </div>
+</div>
+</main>
+<footer class="ft-footer navbar-default">
+    <div class="container text-center">
+                    <p class="ft-footer_message">Powered by WebClass</p>
+            </div>
+</footer>
+<script>
+    $(document).ready(function(){
+        var sessionTimer = 1200000;
+        function updateSession(){
+            var ajaxrequest_updateSession = '/webclass/session.php/keep';
+            $.ajax({ url: ajaxrequest_updateSession, data : {}, cache : false, type : "GET", success: function(data) {} });
+            setTimeout(updateSession, sessionTimer);
+        }
+        updateSession();
+    });
+</script>
+</body>
+</html>

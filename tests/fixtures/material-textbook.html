@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+    <base href="/webclass/data/course/00/00x_000001/d0000000000000000000000000000012/" >
+
+    <link rel="stylesheet" href="/webclass/css/jquery/jquery.mobile-1.3.2.min.css" >
+    <link rel="stylesheet" href="/webclass/css/jquery/jquery.mobile-1.3.2.theme-plane.min.css" >
+    <script src="/webclass/js/jquery/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).bind("mobileinit", function(){
+            $.mobile.ajaxEnabled = false;
+            $.mobile.ajaxFormsEnabled = false;
+        });
+    </script>
+    <script src="/webclass/js/jquery/jquery.mobile-1.3.2.min.js"></script>
+            <script class="js-config" type="application/json">{"TOP_URL":"\/webclass\/","textbook_file_base_url":"\/webclass\/textbook.php\/d0000000000000000000000000000007","language":"JAPANESE"}</script>
+            <script class="js-message" type="application/json">[]</script>
+    <style type="text/css">
+        body  {font-family: monospace;}
+        fieldset {
+            border-style: none;
+        }
+        iframe {
+            margin-right: 1em;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+
+    <script id="json-data" class="js-config" type="application/json">{"TOP_URL":"\/webclass\/","language":"JAPANESE","loading_image_url":"\/webclass\/images\/loading.gif","feature.message":true,"feature.information":1,"message-alert":false,"max_upload_file_size":314572800,"contents_id":"d0000000000000000000000000000007","contents_end_datetime":"","deadlineRemainTime":-1,"extratime_mode":false,"do_contents.update_interval":60}</script>
+    <script id="json-lang" class="js-message" type="application/json">{"PAGE_UNLOAD_STRING":"PAGE_UNLOAD_STRING","MINUTE":"\u5206","SECOND":"\u79d2"}</script>
+    <script type="text/javascript">
+
+            function filedownload(openurl) {
+        w = window.open(openurl, "download",
+                "toolbar=no,location=no,directories=no,status=yes,menubar=no,scrollbars=yes,resizable=yes,width=320,height=250");
+        w.window.focus();
+    }
+        var sessionTimer = 1200000;
+        function updateSession(){
+            var ajaxrequest_updateSession = '/webclass/session.php/keep';
+            $.ajax({
+                url: ajaxrequest_updateSession,
+                data : {
+                },
+                cache : false,
+                type : "GET",
+                success: function(data) {
+
+                }
+            });
+            setTimeout(updateSession, sessionTimer);
+        }
+
+        var TextbookClient = {};
+
+TextbookClient.finish = function() {
+  document.app.sendCommand('finish');
+};
+TextbookClient.index = function() {
+  document.app.sendCommand('index');
+};
+TextbookClient.bookmark = function(page) {
+  page = page === undefined? '1' : page;
+  document.app.sendCommand('bookmark', page);
+};
+TextbookClient.prevPage = function() {
+  document.app.sendCommand('prevPage');
+};
+TextbookClient.nextPage = function() {
+  document.app.sendCommand('nextPage');
+};
+TextbookClient.movePage = function(page) {
+  document.app.sendCommand('movePage', page);
+};
+
+
+
+        $(document).ready(function(){
+            updateSession();
+        });
+
+        $(document).bind("pageinit", function() {
+            resizeEventHandler();
+            $(window).bind('resize', resizeEventHandler);
+        });
+
+        function getAvailableWindowWidth() {
+            if(window.innerWidth) {
+                return window.innerWidth;
+            } else if(document.documentElement.clientWidth) {
+                return document.documentElement.clientWidth;
+            } else if(document.body.clientWidth) {
+                return document.body.clientWidth;
+            }
+            return 0;
+        }
+
+        function resizeEventHandler() {
+            $('iframe').width(getAvailableWindowWidth()-50);
+            resizeVideoFrame();
+        }
+
+        // 動画が埋め込まれている場合は、再生枠を自動調整する
+        function resizeVideoFrame() {
+            var height = $('body:first').height();
+            if(window.innerHeight && height < window.innerHeight) {
+                height = window.innerHeight;
+            } else if(document.body.clientHeight && height < document.body.clientHeight) {
+                height = document.body.clientHeight;
+            }
+            var width = document.documentElement.clientWidth;
+            var aspect;
+            var max_aspect = 3.0 / 4.0;
+            var min_aspect = 9.0 / 16.0;
+            var rate = 0.85;
+            if (width * max_aspect > height) {
+                aspect = height/width; //3.0/4.0;
+                if( aspect > max_aspect) {
+                    // 縦長すぎるときは 3/4 に
+                    aspect = max_aspect;
+                } else if( aspect < min_aspect) {
+                    // 横長すぎるときは 9/16 に
+                    aspect = min_aspect;
+                }
+                if(height / aspect > 640) {
+                    height = 640*aspect;
+                }
+                $("video.attachedPlayer").attr("width", height / aspect * rate).attr("height", height * rate);
+                $("object.attachedPlayer").attr("width", height / aspect * rate).attr("height", height * rate);
+                $("object.attachedPlayer embed").attr("width", height / aspect * rate).attr("height", height * rate);
+            } else {
+                // スクリーンが縦長の時は 3:4 を維持
+                aspect = max_aspect;
+                if(width > 640) {
+                    width = 640;
+                }
+                $("video.attachedPlayer").attr("width", width * rate).attr("height", width * aspect * rate);
+                $("object.attachedPlayer").attr("width", width * rate).attr("height", width * aspect * rate);
+                $("object.attachedPlayer embed").attr("width", width * rate).attr("height", width * aspect * rate);
+            }
+        }
+    </script>
+    <script type="text/javascript"  src="/webclass/js/AC_RunActiveContent.js"></script>
+
+    <title>サンプル添付資料 - WebClass</title>
+</head>
+<body>
+<div id="app"></div>
+<span class="js-mobile-viewer" hidden></span>
+<div data-role="page" >
+    <div data-role="header" data-position="fixed">
+        <h1>資料</h1><a href='javascript:TextbookClient.finish()'>終了</a>
+    </div>
+
+    <div data-role="content">
+        <h2 class='wcl_pageMainTitle'>サンプル添付資料</h2>
+        <form name="TextbookForm" id="Textbook" method="post" enctype="multipart/form-data" autocomplete="off">
+            <input type="hidden" name="TxtbkSession[cmd]" value="">
+            <input type='hidden' name="TxtbkSession[cmdData]" value="">
+            <input type="hidden" name="TxtbkSession[persistentValues]" value="ANONYMIZED">
+            <input type="hidden" id='RemainSecondAtStart' name="RemainSeconds" value="-1" >
+
+                    <h3></h3>
+            <div v-pre>
+        <iframe name='AttachedQuestion' src='/webclass/loadit.php?lang=JAPANESE&amp;file=%2Fwebclass%2Fdata%2Fcourse%2F00%2F00x_000001%2Fd0000000000000000000000000000012%2F00000000000000b1.pdf' width='700' height='300'  style='height: 70vh'></iframe>            </div>
+        </form>
+    </div>
+
+        <div data-role="footer" class="ui-bar">
+        <span data-role="controlgroup" data-type="horizontal"><a href="javascript:TextbookClient.prevPage()" data-icon="arrow-l" data-iconpos="left" data-inline="true" class="ui-disabled">前へ</a><a href="javascript:TextbookClient.nextPage()" data-icon="arrow-r" data-iconpos="right" data-inline="true" class="ui-disabled">次へ</a></span>    </div>
+
+</div>
+</body>
+    <script type="module" src="/webclass/textbook.php/assets/editor/viewer-BgxIU8HI.js"></script>
+    <link rel="modulepreload" href="/webclass/textbook.php/assets/editor/webclass-ui-essentials-D8IAIMCA.js">    <script type="module" src="/webclass/textbook.php/assets/editor/preview-C7VXnqx7.js"></script>
+    <link rel="modulepreload" href="/webclass/textbook.php/assets/editor/webclass-editor-DH6jT93m.js"><link rel="stylesheet" href="/webclass/textbook.php/assets/editor/webclass-editor-NR8yCTbc.css"><link rel="modulepreload" href="/webclass/textbook.php/assets/editor/webclass-ui-essentials-D8IAIMCA.js"></html>

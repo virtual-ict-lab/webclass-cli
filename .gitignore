@@ -111,3 +111,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Downloaded WebClass materials (may contain private course data)
+/downloads/

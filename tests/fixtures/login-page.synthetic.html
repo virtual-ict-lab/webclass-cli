@@ -1,0 +1,10 @@
+<!doctype html>
+<!-- 合成フィクスチャ: 実機のログイン画面ではない。セッション切れ判定テスト用の最小HTML。実機HTMLが手に入ったら置き換える -->
+<html lang="ja"><head><title>WebClass</title></head>
+<body>
+<form action="/webclass/login.php" method="post">
+  <input type="text" name="username"><input type="password" name="val">
+  <input type="submit" value="ログイン">
+</form>
+<a href="/webclass/login.php?auth_mode=SAML">学認/Microsoftでログイン</a>
+</body></html>

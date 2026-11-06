@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
+<html lang="ja">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0">    <script src="/webclass/js/jquery/jquery-1.9.1.min.js"></script>
+    <script>
+        function showTOC() {
+            var elem = document.getElementById('naviFrameSet');
+            elem.cols = '25%,75%';
+        }
+    </script>
+
+            <script>
+            if($(window).width() < 767) {
+                location.href='/webclass/mbl.php/textbooks/?rnd=00000&set_contents_id=d0000000000000000000000000000007&language=JAPANESE&content_mode=i&mbl=1&start_from_show_info=true&content_mode=t&acs_=00000000';
+            }
+            $(document).ready(function() {
+            });
+        </script>
+
+
+    <title>
+        00x_サンプル科目A - WebClass    </title>
+</head>
+
+<FRAMESET ROWS='55,*' BORDER='0' FRAMESPACING='0' FRAMEBORDER='0'>
+    <FRAME src='title_simple.php?rnd=00000&amp;set_contents_id=d0000000000000000000000000000007&amp;language=JAPANESE&amp;content_mode=i&amp;mbl=1&amp;start_from_show_info=true&amp;content_mode=t&amp;show_txtbk_menu=1&amp;show_page_navigation=0&amp;acs_=00000000' Name = 'webclass_title' scrolling=no noresize>
+    <FRAMESET id='naviFrameSet' cols='0%,100%' frameborder='1' border='0' framespacing='0'>
+        <FRAME src='txtbk_show_chapter.php?rnd=00000&amp;set_contents_id=d0000000000000000000000000000007&amp;language=JAPANESE&amp;content_mode=i&amp;mbl=1&amp;start_from_show_info=true&amp;content_mode=t&amp;acs_=00000000' Name = 'webclass_chapter' noresize>
+        <FRAME src='txtbk_show_text.php?contents_id=d0000000000000000000000000000007&amp;acs_=00000000' Name = 'webclass_content' noresize>
+    </FRAMESET>
+</FRAMESET>
+
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "webclass-cli",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "anonymize": "bun scripts/anonymize.ts",
+    "capture": "bun scripts/capture.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "node-html-parser": "^9.0.6"
+  },
+  "version": "0.1.0",
+  "description": "KOSEN WebClass CLI for humans and AI agents",
+  "bin": {
+    "webclass": "src/cli.ts"
+  }
+}

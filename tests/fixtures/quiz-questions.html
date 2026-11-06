@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+
+      <link href="/webclass/css/bootstrap.min.css?time=1700000000" rel="stylesheet" type="text/css" />
+
+      <script src="/webclass/js/vendor.js?time=1700000000"></script>
+    <link rel="stylesheet" href="/webclass/css/jquery/jquery.mobile-1.3.2.min.css" />
+      <link rel="stylesheet" href="/webclass/css/jquery/jquery.mobile-1.3.2.theme-plane.min.css" />
+    <script src="/webclass/js/jquery/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).bind("mobileinit", function(){
+            $.mobile.ajaxEnabled = false;
+            $.mobile.ajaxFormsEnabled = false;
+        });
+    </script>
+    <script src="/webclass/js/jquery/jquery.mobile-1.3.2.min.js"></script>
+      <script class="js-config" type="application/json">{"question_file_base_url":"\/webclass\/question.php\/d000000000000000000000000000000e","contents_id":"d000000000000000000000000000000e"}</script>      <script src="/webclass/js/bootstrap.min.js?time=1700000000"></script>
+    <script src="/webclass/js/jquery/textchange/jquery.textchange.min.js"></script>
+<style>
+body  {font-family: monospace;}
+
+.limitInfo {
+ padding : 0.5em;
+ text-align: right;
+ margin-bottom: 1em;
+}
+.timeLimitInfo {
+}
+#RemainTimeDispBox {
+    font-family: monospace, monospace;
+}
+
+fieldset {
+    border-style: none;
+}
+iframe {
+    margin-right: 1em;
+}
+img {
+    max-width: 100%;
+    height: auto;
+}
+table {
+    width: 530px;
+}
+.autoreportmsg {
+    width: auto;
+}
+/* 外枠 */
+div.x_data_area {
+  width: 100%;
+  overflow: hidden; /* floatさせた要素を内包しているため指定 */
+  border-right: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
+  border-left: 1px solid #CCC;
+}
+
+/* ロック部分 */
+div.x_lock_box {
+  float: left;
+  width: 35%;
+}
+
+/* 横スクロール部分 */
+div.x_scroll_box {
+  border-right: 1px solid #CCC;
+  float: left;
+  width: 64%;
+  border-left: 1px solid #CCC;
+  overflow-y: hidden; /* 縦スクロール非表示 */
+  overflow-x: scroll; /* 横スクロール */
+}
+
+/* テーブル */
+.lock_width {
+  width:100%;
+}
+
+.widthScroll {
+  /*ロックしているテーブルの横のながさ*/
+  width: auto;
+}
+
+table.data {
+  table-layout: fixed; /* 内容を固定 */
+  border-collapse: separate;
+  border-spacing: 0; /* tableのcellspacing="0"の代わり */
+}
+
+table.data th,
+table.data td {
+
+  /*padding: 5px;*/
+  border-right: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
+}
+
+table.data th.r_none,
+table.data td.r_none {
+  border-right: none; /* 右ボーダーの重なりを防止 */
+}
+
+table.data th {
+  border-top: 1px solid #CCC;
+  background: #EEF1F4;
+}
+
+table.data th {
+  overflow: hidden; /* データが幅を超えたとき非表示に */
+  white-space: nowrap; /* データの折り返しを防止 */
+}
+table.data td {
+  overflow: hidden;
+}
+
+table.data td p {
+  margin: 0; /* 余分なマージンを消去 */
+}
+
+/* IE6 */
+table.data {
+  _border-collapse: collapse; /* IE6がborder-spacing: 0;に対応していないので */
+}
+
+/* IE7 */
+*:first-child+html table.data {
+  border-collapse: collapse; /* IE7がborder-spacing: 0;に対応していないので */
+}
+
+p.hint {
+    margin-left: 1em;
+}
+.textLengthInfo {
+    margin-left: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+/* select ボックスの選択UI を jQM のUIにしているが、文書が長くても切らずに全部表示するようにする設定 */
+.ui-btn-inner, /* ボタン */
+.ui-li-heading, /* リスト見出し */
+.ui-li .ui-btn-text a.ui-link-inherit, /* リンクリスト */
+.ui-li-desc /* リスト詳細 */ {
+  overflow: visible;
+  white-space: normal;
+}
+
+.rubric-input-label.active{
+    border: 1px solid #2373a5;
+    background: #387bbe;
+    font-weight: bold;
+    color: #ffffff;
+    cursor: pointer;
+    text-shadow: 0 1px 0 #3373a5;
+    text-decoration: none;
+    background-image: -webkit-gradient(linear,left top,left bottom,from( #5393c5 ),to( #6facd5 ));
+    background-image: -webkit-linear-gradient( #5393c5,#6facd5 );
+    background-image: -moz-linear-gradient( #5393c5,#6facd5 );
+    background-image: -ms-linear-gradient( #5393c5,#6facd5 );
+    background-image: -o-linear-gradient( #5393c5,#6facd5 );
+    background-image: linear-gradient( #5393c5,#6facd5 );
+    font-family: Helvetica,Arial,sans-serif;
+}
+  .dragenter {
+      border-color: rgba(255,0,0, .3);
+      background-color: rgba(255,0,0, .1);
+  }
+
+.text-report-reader {
+    white-space: break-spaces;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: none;
+}
+
+[v-cloak] {
+    display: none;
+}
+</style>
+
+      <script id="json-data" class="js-config" type="application/json">{"TOP_URL":"\/webclass\/","language":"JAPANESE","session_lifetime":120,"loading_image_url":"\/webclass\/images\/loading.gif","feature.message":true,"feature.information":1,"message-alert":false,"max_upload_file_size":314572800,"contents_id":"d000000000000000000000000000000e","branch_mode":false,"contents_end_datetime":"1802043059","deadlineRemainTime":3600,"extratime_mode":false,"do_contents.update_interval":60}</script>
+      <script id="json-lang" class="js-message" type="application/json">{"Wait_until_uploading_finishes":"\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u304c\u7d42\u308f\u308b\u307e\u3067\u304a\u5f85\u3061\u304f\u3060\u3055\u3044\u3002","FILE_UPLOADING_FAILED":"\u30d5\u30a1\u30a4\u30eb\u306e\u53d7\u3051\u53d6\u308a\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002","PLEASE_TRY_AGAIN":"\u30d5\u30a1\u30a4\u30eb\u3092\u6307\u5b9a\u3057\u76f4\u3057\u3066\u304f\u3060\u3055\u3044\u3002","Upload_file_size_limit_exceeded":"\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u30d5\u30a1\u30a4\u30eb\u30b5\u30a4\u30ba\u306e\u4e0a\u9650 {0} \u3092\u8d85\u3048\u3066\u3044\u307e\u3059\u3002\u30d5\u30a1\u30a4\u30eb\u30b5\u30a4\u30ba\uff1a{1}","Upload_file_size_is_zero":"\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u30d5\u30a1\u30a4\u30eb\u30b5\u30a4\u30ba\u304c\uff10\u3067\u3059\u3002\u7a7a\u306e\u30d5\u30a1\u30a4\u30eb\u306f\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u3067\u304d\u307e\u305b\u3093\u3002","not_allowed_file_type":"\u30ec\u30dd\u30fc\u30c8\u304c\u6307\u5b9a\u3055\u308c\u305f\u5f62\u5f0f\u3068\u7570\u306a\u308a\u307e\u3059\u3002\u6307\u5b9a\u3055\u308c\u305f\u5f62\u5f0f\u3067\u63d0\u51fa\u3057\u76f4\u3057\u3066\u304f\u3060\u3055\u3044\u3002","Upload_file_type_is_invalid":"\u30d5\u30a1\u30a4\u30eb\u306e\u5f62\u5f0f\u304c\u6b63\u3057\u304f\u3042\u308a\u307e\u305b\u3093\u3002\u63d0\u51fa\u3057\u3088\u3046\u3068\u3057\u305f\u30d5\u30a1\u30a4\u30eb\u3092\u30a2\u30d7\u30ea\u3067\u958b\u3044\u3066\u3001\u30d5\u30a1\u30a4\u30eb\u5185\u5bb9\u306b\u554f\u984c\u304c\u306a\u3044\u304b\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002","no_files_are_set":"\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u3059\u308b\u30d5\u30a1\u30a4\u30eb\u3092\u6307\u5b9a\u3057\u3066\u304f\u3060\u3055\u3044\u3002","Cancel_file":"\u30d5\u30a1\u30a4\u30eb\u9078\u629e\u3092\u89e3\u9664","DO_NOT_UPDATE_REPORT":"\u30ec\u30dd\u30fc\u30c8\u304c\u63d0\u51fa\u3055\u308c\u3066\u3044\u307e\u3059\u3002\u518d\u63d0\u51fa\u3059\u308b\u3068\u3001\u524d\u56de\u306e\u30ec\u30dd\u30fc\u30c8\u304c\u7834\u68c4\u3055\u308c\u307e\u3059\u3002","There_are_some_invalid_inputs":"\u56de\u7b54\u6761\u4ef6\u3092\u6e80\u305f\u3057\u3066\u3044\u306a\u3044\u7b87\u6240\u304c\u3042\u308a\u307e\u3059\u3002","PAGE_UNLOAD_STRING":"\u4e0d\u6b63\u306a\u30da\u30fc\u30b8\u79fb\u52d5\u3092\u691c\u77e5\u3057\u307e\u3057\u305f\u3002\u3053\u306e\u307e\u307e\u79fb\u52d5\u3059\u308b\u3068\u6210\u7e3e\u30c7\u30fc\u30bf\u304c\u4fdd\u5b58\u3055\u308c\u306a\u304b\u3063\u305f\u308a\u3001\u6700\u60aa\u306e\u5834\u5408\u6210\u7e3e\u30c7\u30fc\u30bf\u3092\u7834\u58ca\u3057\u3066\u3057\u307e\u3046\u3053\u3068\u304c\u3042\u308a\u307e\u3059\u3002\n\u3053\u306e\u6559\u6750\u3092\u5b89\u5168\u306b\u7d42\u4e86\u3059\u308b\u306b\u306f\u300c\u30ad\u30e3\u30f3\u30bb\u30eb\u300d\u30dc\u30bf\u30f3\u3092\u62bc\u3057\u3066\u623b\u308a\u3001\u300c\u63a1\u70b9\u300d\u307e\u305f\u306f\u300c\u7d42\u4e86\u300d\u30dc\u30bf\u30f3\u3092\u62bc\u3057\u3066\u304f\u3060\u3055\u3044\u3002","CURRENT_CHAR_NUM_1":"\u73fe\u5728","CURRENT_CHAR_NUM_2":"\u6587\u5b57\u3002","TEXT_TOO_MANY_CHARACTERS":"\u5b57\u6570\u5236\u9650\u3092\u8d85\u3048\u307e\u3057\u305f\u3002","TEXT_TOO_FEW_CHARACTERS":"\u5b57\u6570\u304c\u8db3\u308a\u307e\u305b\u3093\u3002","TEXT_LENGTH_IS_EXCEEDED":"%d \u6587\u5b57\u8d85\u904e\u3002","TEXT_LENGTH_IS_SHORT":"%d \u6587\u5b57\u4e0d\u8db3\u3002","TEXT_LENGTH_REQUIRE_1":"\u5b57\u6570\u304c\u8db3\u308a\u307e\u305b\u3093\u3002 \u3042\u3068","TEXT_LENGTH_REQUIRE_2":"\u6587\u5b57\u5fc5\u8981\u3067\u3059\u3002","TEXT_LENGTH_OVER_1":"\u5b57\u6570\u5236\u9650\u3092\u8d85\u3048\u307e\u3057\u305f\u3002","TEXT_LENGTH_OVER_2":"\u6587\u5b57\u307e\u3067\u5165\u529b\u3067\u304d\u307e\u3059\u3002","TEXT_LENGTH_REMAIN_1":"\u3042\u3068","TEXT_LENGTH_REMAIN_2":"\u6587\u5b57\u307e\u3067\u5165\u529b\u3067\u304d\u307e\u3059\u3002","TEXT_LENGTH_FIX_SUGGEST":"\u4fdd\u5b58\u3059\u308b\u305f\u3081\u306b\u306f\u5b57\u6570\u5236\u9650\u5185\u306b\u53ce\u307e\u308b\u3088\u3046\u306b\u76f4\u3057\u3066\u304f\u3060\u3055\u3044\u3002","CONFIRM_BRANCH_ANSWER_BACK":"\u524d\u306e\u8a2d\u554f\u306b\u623b\u3063\u3066\u3088\u308d\u3057\u3044\u3067\u3059\u304b\uff1f\n\n\u3053\u306e\u6559\u6750\u306f\u56de\u7b54\u306b\u5fdc\u3058\u3066\u9032\u3080\u8a2d\u554f\u304c\u5207\u308a\u66ff\u308f\u308b\u5f62\u5f0f\u306e\u305f\u3081\u3001\u524d\u306e\u8a2d\u554f\u306b\u623b\u308b\u3068\u4eca\u306e\u8a2d\u554f\u306e\u56de\u7b54\u306f\u524a\u9664\u3055\u308c\u307e\u3059\u3002","MINUTE":"\u5206","SECOND":"\u79d2","MINUTE_SHORT":"\u5206","SECOND_SHORT":"\u79d2"}</script>
+
+<script type="text/javascript">
+    var paramData;
+    var langs;
+    function loadConfigs() {
+        var elemData = document.getElementById("json-data");
+        paramData = JSON.parse(elemData.textContent);
+
+        var elemLang = document.getElementById("json-lang");
+        langs = JSON.parse(elemLang.textContent);
+    }
+
+        function filedownload(openurl) {
+        w = window.open(openurl, "download",
+                "toolbar=no,location=no,directories=no,status=yes,menubar=no,scrollbars=yes,resizable=yes,width=320,height=250");
+        w.window.focus();
+    }
+
+    // 動画が埋め込まれている場合は、再生枠を自動調整する
+    function getAvailableWindowWidth() {
+        if(window.innerWidth) {
+            return window.innerWidth;
+        } else if(document.documentElement.clientWidth) {
+            return document.documentElement.clientWidth;
+        } else if(document.body.clientWidth) {
+            return document.body.clientWidth;
+        }
+        return 0;
+    }
+
+
+$(document).bind('pageinit', function() {
+    $(window).bind('resize', resizeEventHandler);
+    resizeEventHandler();
+});
+function resizeEventHandler() {
+    $('iframe').width(getAvailableWindowWidth()-50);
+    resizeVideoFrame();
+}
+function resizeVideoFrame() {
+    var height = $('body:first').height();
+    if(window.innerHeight && height < window.innerHeight) {
+        height = window.innerHeight;
+    } else if(document.body.clientHeight && height < document.body.clientHeight) {
+        height = document.body.clientHeight;
+    }
+    var width = document.documentElement.clientWidth;
+    var rate = 0.9;
+    var aspect;
+    var max_aspect = 3.0 / 4.0;
+    var min_aspect = 9.0 / 16.0;
+    if (width * max_aspect > height) {
+        aspect = height/width;
+        if( aspect > max_aspect) {
+            // 縦長すぎるときは 3/4 に
+            aspect = max_aspect;
+        } else if( aspect < min_aspect) {
+            // 横長すぎるときは 9/16 に
+            aspect = min_aspect;
+        }
+        if(height / aspect > 640) {
+            height = 640*aspect;
+        }
+        $("video.attachedPlayer").attr("width", height / aspect * rate).attr("height", height * rate);
+        $("object.attachedPlayer").attr("width", height / aspect * rate).attr("height", height * rate);
+        $("object.attachedPlayer embed").attr("width", height / aspect * rate).attr("height", height * rate);
+    } else {
+        // スクリーンが縦長の時は 3:4 を維持
+        aspect = 3.0 / 4.0;
+        if(width > 640) {
+            width = 640;
+        }
+        $("video.attachedPlayer").attr("width", width * rate).attr("height", width * aspect * rate);
+        $("object.attachedPlayer").attr("width", width * rate).attr("height", width * aspect * rate);
+        $("object.attachedPlayer embed").attr("width", width * rate).attr("height", width * aspect * rate);
+    }
+}
+
+$(document).ready(function() {
+    synchroTable();
+});
+//テーブルの縦幅を広い方に合わせる関数
+function synchroTable(){
+    var $tablecount = $(".x_scroll_box");
+    $tablecount.each(
+        function(n){
+
+        var _trCount = 0;
+        //$lockTable の複数対応ができてないことですね
+        var $lockTable = $(".x_scroll_box:eq("+ n +")").find("table")[0];
+        var $_table = $(".lock_width:eq("+ n + ")");
+        //var $lockTable = $(".x_scroll_box").find("table")[0];
+        $_table.find("tr").each(
+            function(){
+                var _mainHeight = $($lockTable.rows[_trCount]).height();
+                var _subHeight = $(this).height();
+                if(_mainHeight < _subHeight){
+                    $($lockTable.rows[_trCount]).height(_subHeight);
+                } else {
+                    $(this).height(_mainHeight);
+                }
+                _trCount++;
+        });
+        }
+    );
+}
+
+
+var WC_QuestionClient = function() {
+    this.commitValidation = true;
+    this.reportUploadValidation = true;
+    this.textUploadValidation = true;
+
+    this.textHardMaximum = 20000;
+    this.reportUploadingStates = {};
+    this.reportUploaderBussy = false;
+};
+
+WC_QuestionClient.prototype.init = function() {
+    var clientObject = this;
+
+    window.onbeforeunload = function(event){
+        if (clientObject.isSubmitting()) {
+            return;
+        }
+        event.returnValue = clientObject.t('PAGE_UNLOAD_STRING');
+    };
+
+    $('.textStyle .inputcounter')
+        .on('change', function() {
+            clientObject.textChangeHandler(this, clientObject);
+        })
+        .on('keyup', function() {
+            clientObject.textChangeHandler(this, clientObject);
+        })
+        .on('paste', function() {
+            clientObject.textChangeHandler(this, clientObject);
+        })
+        .each(function() {
+            clientObject.textChangeHandler(this, clientObject);
+        });
+}
+
+WC_QuestionClient.prototype.timeUp = function() {
+    this.commit('timeout');
+}
+
+
+/**
+ * get localed string
+ *
+ * @param label
+ * @returns {*}
+ */
+WC_QuestionClient.prototype.t = function(label) {
+    if (label in langs) {
+        return langs[label];
+    }
+
+    return label;
+}
+
+
+/**
+ * Request some action with submitting form data.
+ * Actual result depends on 'cmd' of action request.
+ *
+ * @param cmd
+ * @param data
+ */
+WC_QuestionClient.prototype.commit = function(cmd, data) {
+    if (this.isSubmitting()) {
+        return ;
+    }
+
+    // Do not skip this validation.
+    // If your form has some blockers and you have to send your form,
+    // remove blockers before you call commit();
+    if (cmd === 'timeout') {
+        //this.forceSanitizeForm();
+    } else {
+        if (this.commitValidation && !this.validateForm()) {
+            this.showErrorMessage(this.t('There_are_some_invalid_inputs'));
+            return;
+        }
+        if (this.isFileUploading()) {
+            return;
+        }
+    }
+
+    $.mobile.loading('show', {
+        text: this.t('Wait_until_uploading_finishes'),
+        textVisible: true,
+        textonly: false
+    });
+
+    this.submit(cmd, data);
+};
+
+/**
+ *
+ * @param cmd
+ */
+WC_QuestionClient.prototype.submit = function(cmd, data) {
+    document.QuestionForm['QstnSession[cmd]'].value = cmd;
+    if (data == undefined) {
+        document.QuestionForm['QstnSession[cmdData]'].value = '';
+    } else {
+        document.QuestionForm['QstnSession[cmdData]'].value = data;
+    }
+    document.QuestionForm.submit();
+}
+
+/**
+ *
+ * @returns {boolean}
+ */
+WC_QuestionClient.prototype.isSubmitting = function() {
+    return !(document.QuestionForm['QstnSession[cmd]'].value == '');
+}
+
+WC_QuestionClient.prototype.forceSanitizeForm = function() {
+    var clientObject = this;
+    var valid = true;
+    $('fieldset.reportStyle').each(function() {
+        if ($(this).find('input[type=file]').length) {
+            var file = $(this).find('input[type=file]').prop('files')[0];
+            if (file != null) {
+                var fieldId = $(this).attr('id');
+                var reportFileLimit = clientObject.getReportFileLimitByDom(fieldId);
+                var fileValidationResult = clientObject.validateReportFile(file, reportFileLimit);
+                if (!fileValidationResult.valid) {
+                    clientObject.showReportNotice(fieldId, fileValidationResult.invalid_reason);
+                    // force drop off invalid file to protect system.
+                    clientObject.cancelReportInput(fieldId);
+                    valid = false;
+                } else {
+                    clientObject.hideReportNotice(fieldId);
+                }
+            }
+        }
+    });
+
+    $('.textStyle').each(function() {
+        if ($(this).find('textarea').val().length > 0) {
+            var fieldId = $(this).attr('id');
+            var textLimit = clientObject.getTextLimitByDom(fieldId);
+            var length = clientObject.calcTextLength($(this).find('textarea').val());
+            if (length > this.textHardMaximum) {
+                clientObject.shortenTextToMaximumLength(fieldId, this.textHardMaximum);
+                valid = false;
+            }
+            clientObject.updateTextLengthCounter(fieldId);
+        }
+    });
+
+    return valid;
+}
+
+/**
+ * Check form for application blockers
+ *
+ * @returns {boolean}
+ */
+WC_QuestionClient.prototype.validateForm = function () {
+    var clientObject = this;
+    var valid = true;
+    $('fieldset.reportStyle').each(function() {
+        if ($(this).find('input[type=file]').length) {
+            var file = $(this).find('input[type=file]').prop('files')[0];
+            if (file != null) {
+                var fieldId = $(this).attr('id');
+                var reportFileLimit = clientObject.getReportFileLimitByDom(fieldId);
+                var fileValidationResult = clientObject.validateReportFile(file, reportFileLimit);
+                if (!fileValidationResult.valid) {
+                    clientObject.showReportNotice(fieldId, fileValidationResult.invalid_reason);
+                    valid = false;
+                } else {
+                    clientObject.hideReportNotice(fieldId);
+                }
+            }
+        }
+    });
+
+    $('.textStyle').each(function() {
+        /*
+        if ($(this).find('textarea').val().length > 0) {
+            var fieldId = $(this).attr('id');
+            var textLimit = clientObject.getTextLimitByDom(fieldId);
+            var length = clientObject.calcTextLength($(this).find('textarea').val());
+            clientObject.updateTextLengthCounter(fieldId);
+            var textValidationResult = clientObject.validateText(length, textLimit);
+            if (!textValidationResult.valid) {
+                valid = false;
+            }
+        }
+        */
+    });
+
+    return valid;
+}
+
+/**
+ *
+ * @param page
+ * @returns {undefined}
+ */
+WC_QuestionClient.prototype.restart = function(page) {
+    return this.commit('restart');
+};
+
+/**
+ * Request finish and close current question material.
+ *
+ */
+WC_QuestionClient.prototype.finish = function() {
+    return this.commit('finish');
+};
+
+WC_QuestionClient.prototype.index = function() {
+    return this.commit('index');
+};
+WC_QuestionClient.prototype.bookmark = function() {
+    return this.commit('bookmark');
+};
+WC_QuestionClient.prototype.prevPage = function() {
+    if (paramData.branch_mode) {
+        if (!window.confirm(__('CONFIRM_BRANCH_ANSWER_BACK'))) {
+            return;
+        }
+    }
+    return this.commit('prevPage');
+};
+WC_QuestionClient.prototype.nextPage = function() {
+    return this.commit('nextPage');
+};
+WC_QuestionClient.prototype.movePage = function(page) {
+    return this.commit('movePage', page);
+};
+WC_QuestionClient.prototype.check = function(page) {
+    return this.commit('check');
+};
+
+WC_QuestionClient.prototype.checkTextInput = function() {
+    return this.commit('checkTextInput');
+}
+
+WC_QuestionClient.prototype.showErrorMessage = function(msg) {
+    alert(msg);
+}
+
+WC_QuestionClient.prototype.showInfoMessage = function(msg) {
+
+}
+
+/**
+ * テキストフィールドの文字数カウンターを更新する
+ */
+WC_QuestionClient.prototype.textChangeHandler = function (eventElem, questionClient) {
+    var fieldId = $(eventElem).attr('data-field-id');
+    questionClient.updateTextLengthCounter(fieldId);
+}
+
+WC_QuestionClient.prototype.saveText = function(fieldId) {
+    var text = $('#'+ fieldId + ' textarea').val();
+    this.updateTextLengthCounter(fieldId);
+
+    if (this.textUploadValidation) {
+        if (text.length > 0) {
+            var textLimit = this.getTextLimitByDom(fieldId);
+            var length = this.calcTextLength(text);
+
+            var textValidationResult = this.validateText(length, textLimit);
+            if (!textValidationResult.valid) {
+                this.showErrorMessage(textValidationResult.invalid_reason);
+                return;
+            }
+        }
+    }
+
+    return this.restart();
+};
+
+WC_QuestionClient.prototype.calcTextLength = function (text) {
+    return text.replace(/\r\n/gm,'\n').length;
+}
+
+WC_QuestionClient.prototype.getTextLimitByDom = function(fieldId) {
+    var min_length = parseInt($('#'+ fieldId + ' textarea').attr('data-min-length'));
+    var max_length = parseInt($('#'+ fieldId + ' textarea').attr('data-max-length'));
+
+    return {
+        min_length: min_length,
+        max_length: max_length
+    };
+}
+
+WC_QuestionClient.prototype.validateText = function(length, textLimit)
+{
+    var returnFalse = function(reason) {
+        return {
+            valid : false,
+            invalid_reason: reason
+        };
+    };
+    var returnTrue = function() {
+        return {
+            valid : true,
+            invalid_reason: ''
+        }
+    };
+
+    if (length > textLimit.max_length && textLimit.max_length > 0) {
+       return returnFalse(this.t('TEXT_TOO_MANY_CHARACTERS'));
+    }
+
+    if(length < textLimit.min_length && textLimit.min_length > 0) {
+        return returnFalse(this.t('TEXT_TOO_FEW_CHARACTERS'));
+    }
+
+    return returnTrue();
+}
+
+WC_QuestionClient.prototype.updateTextLengthCounter = function(fieldId) {
+    var text = $('#'+ fieldId + ' textarea').val();
+    var min_length = parseInt($('#'+ fieldId + ' textarea').attr('data-min-length'));
+    var max_length = parseInt($('#'+ fieldId + ' textarea').attr('data-max-length'));
+    var length = text.replace(/\r\n/gm,'\n').length;
+
+    var modeClass = 'textStatusFair';
+    if (length < min_length && min_length > 0 && length >= 0) {
+        modeClass = 'textStatusShort';
+    } else if (length > max_length) {
+        modeClass = 'textStatusLong';
+    }
+
+
+    $('#'+fieldId + ' .textLengthInfo .message1').text(this.t('CURRENT_CHAR_NUM_1') + ' '+ length + ' '+ this.t('CURRENT_CHAR_NUM_2'));
+    $('#'+fieldId + ' .textLengthInfo .message1').css('color', 'black');
+
+    if (modeClass == 'textStatusShort') {
+        $('#'+fieldId + ' .textLengthInfo .message2')
+            .text(this.t('TEXT_LENGTH_IS_SHORT').replace('%d', (min_length - length))+ ' ' + this.t('TEXT_LENGTH_FIX_SUGGEST'))
+            .css('color', 'red');
+        $('#saveButton_'+fieldId).addClass('ui-disabled');
+    } else if (modeClass == 'textStatusLong') {
+        $('#'+fieldId + ' .textLengthInfo .message2')
+            .text(this.t('TEXT_LENGTH_IS_EXCEEDED').replace('%d', (length - max_length))+ ' ' + this.t('TEXT_LENGTH_FIX_SUGGEST'))
+            .css('color', 'red');
+        $('#saveButton_'+fieldId).addClass('ui-disabled');
+    } else {
+        $('#'+fieldId + ' .textLengthInfo .message2')
+            .text(this.t('TEXT_LENGTH_REMAIN_1') + ' ' + (max_length - length) + ' ' + this.t('TEXT_LENGTH_REMAIN_2'))
+            .css('color', 'black');
+        $('#saveButton_'+fieldId).removeClass('ui-disabled');
+    }
+}
+
+/**
+ *
+ * @param fieldId
+ * @param max_length
+ */
+WC_QuestionClient.prototype.shortenTextToMaximumLength = function (fieldId, max_length) {
+    var text = $('#'+ fieldId + ' textarea').val();
+    if (max_length === undefined || max_length === null ||  max_length === 0) {
+        max_length = parseInt($('#'+ fieldId + ' textarea').attr('data-max-length'));
+    }
+    var length = text.replace(/\r\n/gm,'\n').length;
+
+    if (length > max_length) {
+        text = text.substr(0, max_length);
+        $('#'+ fieldId + ' textarea').val(text);
+    }
+}
+
+
+/**
+ * When report file is changed, validate file user wants to upload.
+ *
+ */
+WC_QuestionClient.prototype.reportFileChangeHandler = function(eventElem, questionClient) {
+    var fieldId = $(eventElem).attr('data-field-id');
+    questionClient.hideReportNotice(fieldId);
+    if ($('#'+fieldId).find('input[type=file]').length) {
+        var file = $('#' + fieldId).find('input[type=file]').prop('files')[0];
+        if (file != null) {
+            var reportFileLimit = questionClient.getReportFileLimitByDom(fieldId);
+            var fileValidationResult = questionClient.validateReportFile(file, reportFileLimit);
+            if (!fileValidationResult.valid) {
+                questionClient.showErrorMessage(fileValidationResult.invalid_reason);
+                questionClient.showReportNotice(fieldId, fileValidationResult.invalid_reason);
+            }
+        }
+    }
+}
+
+/**
+ *
+ * @param fieldId
+ * @returns {boolean|*}
+ */
+WC_QuestionClient.prototype.uploadReport = function(fieldId)
+{
+    this.hideReportNotice(fieldId);
+    if (this.reportUploadValidation) {
+        if ($('#'+fieldId).find('input[type=file]').length) {
+            var file = $('#'+fieldId).find('input[type=file]').prop('files')[0];
+            if (file != null) {
+                var reportFileLimit = this.getReportFileLimitByDom(fieldId);
+                var fileValidationResult = this.validateReportFile(file, reportFileLimit);
+                if (!fileValidationResult.valid) {
+                    this.showErrorMessage(fileValidationResult.invalid_reason);
+                    this.showReportNotice(fieldId, fileValidationResult.invalid_reason);
+                    return;
+                }
+            } else {
+                // file not set
+                this.showErrorMessage(this.t('no_files_are_set'));
+                return;
+            }
+        }
+    }
+
+    return this.restart();
+};
+
+WC_QuestionClient.prototype.getReportFileLimitByDom = function(fieldId) {
+    var max_size = parseInt($('#' + fieldId).attr('data-size-limit'));
+    var limit_type = $('#'+fieldId).attr('data-type-limit');
+    var allowedTypes = [];
+    if (limit_type.length > 0) {
+        allowedTypes = limit_type.split(',');
+    }
+
+    return {
+        min_size: 1,
+        max_size: max_size,
+        allowed_types: allowedTypes
+    };
+}
+
+WC_QuestionClient.prototype.showReportNotice = function(fieldId, msg) {
+    var reportFileNoticeBlock = $('#'+fieldId + ' .reportFileNotice');
+    reportFileNoticeBlock.html('<p><span style="color:red; font-weight: bold;">' + msg + '</span>' +
+        "<input type=\"button\" value=\"" + this.t('Cancel_file') + "\" class='CancelFileChoiceButton' onclick=\"return QuestionClient.cancelReportInput('" +
+        fieldId + "')\">" +
+    '</p>');
+}
+
+WC_QuestionClient.prototype.hideReportNotice = function(fieldId) {
+    $('#'+fieldId + ' .reportFileNotice').html('');
+}
+
+/**
+ * cancel file choice on file input form.
+ * Generally, file input form can not be canceled after some files are set while file can be changed.
+ *
+ * @param fieldId
+ */
+WC_QuestionClient.prototype.cancelReportInput = function(fieldId) {
+    // jquery mobile extends dom structure.
+
+    var outer = $('#'+fieldId+'_outer');
+    if (outer.find('input[type=file]').length) {
+        var file = outer.find('input[type=file]');
+        var parent = file.parent();
+        var fileClasses = file.attr('class');
+        var fileName = file.attr('name');
+        file.appendTo($('<div>'));
+
+        var clientObject = this;
+        var newFileInput = $('<input type=\"file\" name = \"' + fileName + '\" data-field-id="' + fieldId + '" class="' + fileClasses + '">');
+        /*
+         // this is blocked by cromium + GoogleDrive problem
+        .on('change', function(){
+            clientObject.reportFileChangeHandler(this, clientObject);
+        });
+         */
+        parent.append(newFileInput);
+        $('#'+fieldId + ' .reportFileNotice').html('');
+    }
+}
+
+WC_QuestionClient.prototype.validateReportFile = function(fileStruct, reportFileLimit)
+{
+    var returnFalse = function(reason) {
+        return {
+            valid : false,
+            invalid_reason: reason
+        };
+    };
+    var returnTrue = function() {
+        return {
+            valid : true,
+            invalid_reason: ''
+        }
+    };
+
+    if (fileStruct.size > reportFileLimit.max_size) {
+        return returnFalse(formatStr(this.t('Upload_file_size_limit_exceeded'), formatFileSize(reportFileLimit.max_size), formatFileSize(fileStruct.size)));
+    }
+    if (fileStruct.size < reportFileLimit.min_size) {
+        return returnFalse(this.t('Upload_file_size_is_zero'));
+    }
+
+    if (reportFileLimit.allowed_types.length > 0) {
+        if (!checkExtension(reportFileLimit.allowed_types, fileStruct.name)) {
+            return returnFalse(this.t('not_allowed_file_type'));
+        }
+    }
+    var ext = getLastExtensionFromFileName(fileStruct.name);
+    switch (ext) {
+        case 'docx':
+        case 'xlsx':
+        case 'pptx':
+        case 'doc':
+        case 'xls':
+        case 'ppt':
+            // Uploaded files from onedrive with android browser contain only link urls with original file name.
+            // This faking occur users and authors confusion.
+            // To reject faking file, file size is one clue. Open document office files costs more than 1kb usually.
+            if (fileStruct.size < 1000) {
+                return returnFalse(this.t('Upload_file_type_is_invalid'));
+            }
+            break;
+    }
+
+    return returnTrue();
+}
+
+WC_QuestionClient.prototype.asyncUploadFile = function (qnum, file, callbacks) {
+    // フォームデータを取得
+    var formdata = new FormData();
+    formdata.append('set_contents_id', paramData.contents_id);
+    formdata.append('question_no', qnum);
+    formdata.append('upload_file', file);
+
+    var clientObject = this;
+    this.reportUploadingStates[qnum] = true;
+
+    // テスト教材はもともと非同期アクセスに対応していないので、アップロード処理は実際には１スレッドにする。
+    // アップロードリクエストをキューイングする方が良い。
+    asyncUploader = function(qnum, formdata, callbacks) {
+        if (!clientObject.reportUploaderBussy) {
+            clientObject.reportUploaderBussy = true;
+            $.ajax({
+                url: paramData.TOP_URL + 'mbl.php/questions/api?api=upload&set_contents_id='+paramData.contents_id,
+                type: "POST",
+                data: formdata,
+                cache: false,
+                contentType: false,
+                processData: false,
+                dataType: 'json'
+            })
+                .done(function (data, textStatus, jqXHR) {
+                    if (data.status === 'OK') {
+                        if (callbacks && callbacks.done) {
+                            callbacks.done(data);
+                        }
+                    } else if (callbacks && callbacks.fail) {
+                        if (data.message) {
+                            callbacks.fail(data.message);
+                        } else{
+                            callbacks.fail('unknown error');
+                        }
+                    }
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    if (callbacks && callbacks.fail) {
+                        callbacks.fail('request failed : ' + textStatus);
+                    }
+                })
+                .always(function (data) {
+                    clientObject.reportUploadingStates[qnum] = false;
+                    clientObject.reportUploaderBussy = false;
+                    if (callbacks && callbacks.always) {
+                        callbacks.always();
+                    }
+                });
+        } else {
+            setTimeout(function() {
+                asyncUploader(qnum, formdata, callbacks);
+            }, 300);
+        }
+    }
+    asyncUploader(qnum, formdata, callbacks);
+};
+
+WC_QuestionClient.prototype.isFileUploading = function () {
+    for(qnum in this.reportUploadingStates) {
+        if (this.reportUploadingStates[qnum]) {
+            return true;
+        }
+    }
+    return false;
+};
+
+function radioClear(num) {
+    if (document.QuestionForm) {
+        var itemLength = 0;
+        if (document.QuestionForm['QuestionAnswer['+num+'][value]']) {
+            itemLength = document.QuestionForm['QuestionAnswer['+num+'][value]'].length;
+        }
+        for (i = 0; i < itemLength; i++) {
+            document.QuestionForm['QuestionAnswer['+num+'][value]'][i].checked = false;
+        }
+        $(document.QuestionForm['QuestionAnswer['+num+'][value]']).checkboxradio("refresh");
+    } else if (document.answer_form) {
+        for(i = 0; i < document.answer_form[num].length; i++) {
+            document.answer_form[num][i].checked = false;
+        }
+    }
+}
+function textClear(num) {
+    if (document.QuestionForm) {
+        if (document.QuestionForm && document.QuestionForm['QuestionAnswer['+num+'][text]'] != null) {
+            document.QuestionForm['QuestionAnswer['+num+'][text]'].value = '';
+        }
+    } else if (document.answer_form) {
+        if (document.answer_form[num] != null) {
+            document.answer_form[num].value = '';
+        }
+    }
+}
+
+/**
+ * フォーマット関数
+ * formatStr("string {0} and {1}", "ValA", "ValB")のように渡して使います。
+ */
+function formatStr(fmt, a)
+{
+    var rep_fn = undefined;
+
+    if (typeof a == "object") {
+        rep_fn = function(m, k) { return a[ k ]; }
+    }
+    else {
+        var args = arguments;
+        rep_fn = function(m, k) { return args[ parseInt(k)+1 ]; }
+    }
+
+    return fmt.replace( /\{(\w+)\}/g, rep_fn);
+}
+
+function formatFileSize(bytes) {
+    if (typeof bytes !== 'number') {
+        return '';
+    }
+    var Mega = 1024 * 1024;
+    var Giga = Mega * 1024;
+    if (bytes >= Giga) {
+        return (bytes / Giga).toFixed(2) + ' GB';
+    }
+    if (bytes >= Mega) {
+        return (bytes / Mega).toFixed(2) + ' MB';
+    }
+    return (bytes / 1024).toFixed(2) + ' KB';
+}
+
+/**
+ *
+ * @param acceptableFileType (Word, Excel, PowerPoint, Text, PDF)
+ * @param fileName
+ * @return boolean
+ */
+function checkExtension(acceptableFileType, fileName)
+{
+    fileType = getReportFileType(fileName);
+    if (acceptableFileType.length > 0 && fileType.length > 0) {
+        if (acceptableFileType.indexOf(fileType) >= 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getLastExtensionFromFileName(fileName)
+{
+    var ext  = '';
+    var dotPos = fileName.lastIndexOf('.');
+    if (dotPos > 0) {
+        ext = fileName.substr(dotPos+1).toLowerCase();
+    }
+
+    return ext;
+}
+
+function getReportFileType(fileName)
+{
+    var ext  = getLastExtensionFromFileName(fileName);
+
+    var extension_array = {
+        "doc"  : "Word",
+        "docx" : "Word",
+        "docm" : "Word",
+        "xls"  : "Excel",
+        "xlsx" : "Excel",
+        "xlsm" : "Excel",
+        "ppt"  : "PowerPoint",
+        "pptx" : "PowerPoint",
+        "pptm" : "PowerPoint",
+        "txt"  : "Text",
+        "pdf"  : "PDF"
+    };
+
+    if (ext in extension_array) {
+        return extension_array[ext];
+    }
+
+    return "";
+}
+
+    function showimageOpen(file_name, width, height) {
+        $option = "toolbar=no, location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=" + width + ",height=" + height;
+        w = window.open(file_name, "showimageWindow", $option);
+        w.window.focus();
+
+    }
+
+    var sessionTimer;
+    function updateSession(){
+        var ajaxrequest_updateSession = paramData.TOP_URL + 'session.php/keep';
+        $.ajax({
+            url: ajaxrequest_updateSession,
+            data : {
+            },
+            cache : false,
+            type : "GET",
+            success: function(data) {
+
+            }
+        });
+        setTimeout(updateSession, sessionTimer);
+    }
+
+    function __(label) {
+        if(langs[label]) {
+            return langs[label];
+        } else {
+            return label;
+        }
+    }
+
+    var QuestionClient = new WC_QuestionClient();
+
+    $(document).ready(function(){
+        loadConfigs();
+
+        // one sixth of session_lifetime, and seconds to micro seconds.
+        sessionTimer = ((paramData.session_lifetime * 60) / 6) * 1000;
+        updateSession();
+
+        QuestionClient.init();
+
+
+        $('.rubric-input').on('change',function(){
+            var id = this.id;
+            var name = this.name;
+
+            $('input[name="' + name + '"]').each(function () {
+                if (this.id === id){
+                    $('label[for=' + this.id + ']').addClass('active');
+                } else {
+                    $('label[for=' + this.id + ']').removeClass('active');
+                }
+            })
+        });
+    });
+
+    function onRadioSelected(id) {
+        var name =  $('#' + id).attr('name');
+
+        $('input[name="' + name + '"]').each(function () {
+            if (this.id === id){
+                $('label[for=' + this.id + ']').addClass('ui-btn-active');
+            } else {
+                $('label[for=' + this.id + ']').removeClass('ui-btn-active');
+            }
+        });
+    }
+</script>
+<script type="text/javascript"  src="/webclass/js/AC_RunActiveContent.js"></script>
+
+  <title>サンプル小テストC - WebClass</title>
+</head>
+<body>
+<div id='app'></div>
+<div data-role="page" id="app">
+    <div data-role="header" data-position="fixed">
+        <h1>自習</h1>
+        <a href="javascript:QuestionClient.finish()">採点</a>
+    </div>
+    <div data-role="content">
+        <h2 class="wcl_pageMainTitle">サンプル小テストC</h2>
+
+
+        <form name="QuestionForm" id="Question" method="post" enctype="multipart/form-data" autocomplete="off">
+            <input type="hidden" name="QstnSession[cmd]" value="">
+            <input type='hidden' name='QstnSession[cmdData]' value=''>
+            <input type='hidden' name='QstnSession[s]' value='1'>
+            <input type='hidden' name='QstnSession[page]' value='1'>
+            <input type='hidden' name='QstnSession[disp_time]' value='1793931528'>
+            <input type='hidden' name='passdSec' value='0'>
+            <input type="hidden" id="RemainSecondAtStart" name="RemainSeconds" value="-1" />
+
+        <div class="limitInfo"><div class="timeLimitInfo" id="DeadLine">期限 <span id="DeadLineDispBox">2027-02-08 08:30</span></div></div>            <h2  class='wcl_sectionTitle'>設問 1</h2><div class="content"><p>サンプル設問1の入力欄です。</p><input type="hidden" name="QuestionAnswer[1][style]" value="wordinput"><p><div >(1)</div><input type="text" id='QF_1_0' name="QuestionAnswer[1][value][0]" value="" size="50" maxlength="500" AUTOCOMPLETE="OFF" class="LangKeyboad" /></p><p class="point">配点 : 1</p></div><h2  class='wcl_sectionTitle'>設問 2</h2><div class="content"><p>サンプル設問2の入力欄です。</p><input type="hidden" name="QuestionAnswer[2][style]" value="wordinput"><p><div >(1)</div><input type="text" id='QF_2_0' name="QuestionAnswer[2][value][0]" value="" size="50" maxlength="500" AUTOCOMPLETE="OFF" class="LangKeyboad" /></p><p class="point">配点 : 1</p></div><h2  class='wcl_sectionTitle'>設問 3</h2><div class="content"><p>サンプル設問3の入力欄です。</p><input type="hidden" name="QuestionAnswer[3][style]" value="wordinput"><p><div >(1)</div><input type="text" id='QF_3_0' name="QuestionAnswer[3][value][0]" value="" size="50" maxlength="500" AUTOCOMPLETE="OFF" class="LangKeyboad" /></p><p class="point">配点 : 1</p></div><h2  class='wcl_sectionTitle'>設問 4</h2><div class="content"><p>サンプル設問4の入力欄です。</p><input type="hidden" name="QuestionAnswer[4][style]" value="wordinput"><p><div >(1)</div><input type="text" id='QF_4_0' name="QuestionAnswer[4][value][0]" value="" size="50" maxlength="500" AUTOCOMPLETE="OFF" class="LangKeyboad" /></p><p class="point">配点 : 1</p></div><h2  class='wcl_sectionTitle'>設問 5</h2><div class="content"><p>サンプル設問5の入力欄です。</p><input type="hidden" name="QuestionAnswer[5][style]" value="wordinput"><p><div >(1)</div><input type="text" id='QF_5_0' name="QuestionAnswer[5][value][0]" value="" size="50" maxlength="500" AUTOCOMPLETE="OFF" class="LangKeyboad" /></p><p class="point">配点 : 1</p></div><a href="javascript:QuestionClient.finish()" data-role="button" class="ui-btn-active" >採点</a>        </form>
+    </div>
+    <div data-role="footer" class="ui-bar">
+    </div>
+</div>
+
+<script src="/webclass/js/pages/views--layouts--mbl_question.js?time=1700000000"></script>
+    <script type="module" src="/webclass/question.php/assets/editor/preview-B_027YJl.js"></script>
+    <link rel="modulepreload" href="/webclass/question.php/assets/editor/webclass-editor-otfEW_RB.js"><link rel="stylesheet" href="/webclass/question.php/assets/editor/webclass-editor-DiA15pkO.css"><link rel="modulepreload" href="/webclass/question.php/assets/editor/_plugin-vue_export-helper-C6gcVEMA.js"><link rel="modulepreload" href="/webclass/question.php/assets/editor/webclass-editor-3j0ixip-.js">            <link rel="stylesheet" href="/webclass/question.php/assets/editor/ScoringRubricResult-yyLjtoi7.css" />
+
+</body>
+</html>

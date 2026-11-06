@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>お知らせ - WebClass</title>
+    <link rel="stylesheet" type="text/css" href="/webclass/css/bootstrap_blue.css?time=1700000000">
+    <link rel="stylesheet" type="text/css" href="/webclass/css/webclass.css">
+    <link rel="stylesheet" type="text/css" href="/webclass/css/loader.php?css=informations">
+    <link rel="stylesheet" type="text/css" href="/webclass/information.php/assets/info.css">
+</head>
+<body>
+
+<nav class="navbar navbar-default tool-window-bar clearfix">
+    <a href="javascript:window.close();" class="close-link navbar-link">» このウィンドウを閉じる</a>
+    <span class="navbar-brand"><span class="brand">WebClass</span><span class="sep">|</span><span class="title">メッセージ / お知らせ</span></span>
+</nav>
+
+<div class="ctx-bar clearfix " id="ctx-bar">
+                    <span class="ctx-label">コース：</span>
+        <span class="ctx-name" id="ctx-current">00x_サンプル科目A</span>
+        <button class="ctx-switch" id="ctx-switch">コース選択 ▾</button>
+        <a href="/webclass/information.php/" class="ctx-reset" id="ctx-reset">× 選択を解除</a>
+    </div>
+
+<div class="msg-breadcrumb">
+    <button class="breadcrumb-toggle" id="bc-toggle">☰</button>
+    <span class="breadcrumb-text" id="bc-text">お知らせ<span class="sep">&gt;</span>一覧</span>
+</div>
+
+<div class="container-fluid info-screen" style="margin-top: 8px;">
+    <div class="row">
+        <div class="col-sm-2 side-nav" id="side-nav">
+    <h5>メッセージ</h5>
+  <ul class="nav nav-pills nav-stacked">
+          <li><a href="/webclass/messages.php/course/00x_000001/inbox">受信箱</a></li>
+      <li><a href="/webclass/messages.php/course/00x_000001/outbox">送信済箱</a></li>
+      <li><a href="/webclass/messages.php/course/00x_000001/recyclebox">ゴミ箱</a></li>
+              <li><a href="/webclass/messages.php/course/00x_000001/compose">メッセージ作成</a></li>
+                  </ul>
+
+  <h5>お知らせ</h5>
+  <ul class="nav nav-pills nav-stacked">
+    <li class="active"><a href="/webclass/information.php/course/00x_000001/">一覧</a></li>
+          </ul>
+</div>
+        <div class="col-sm-10">
+
+            <div class="toolbar clearfix">
+  <span class="pull-right">
+          <button class="btn btn-default btn-sm" disabled>最初</button>
+      <button class="btn btn-default btn-sm" disabled>‹ 前へ</button>
+        <span class="page-current"><strong>1</strong> / 1</span>
+          <button class="btn btn-default btn-sm" disabled>次へ ›</button>
+      <button class="btn btn-default btn-sm" disabled>最後</button>
+      </span>
+</div>
+
+  <div class="empty">お知らせはありません</div>
+
+        </div>
+    </div>
+</div>
+
+<!-- スマホ用 上から drawer -->
+<div class="drawer-overlay" id="drawer-overlay"></div>
+<div class="top-drawer" id="top-drawer">
+    <div class="drawer-head">
+        <span class="drawer-title">メニュー</span>
+        <button class="drawer-close" id="drawer-close" type="button" aria-label="閉じる">×</button>
+    </div>
+    <div class="drawer-body">
+        <div class="col-sm-2 side-nav" id="side-nav">
+    <h5>メッセージ</h5>
+  <ul class="nav nav-pills nav-stacked">
+          <li><a href="/webclass/messages.php/course/00x_000001/inbox">受信箱</a></li>
+      <li><a href="/webclass/messages.php/course/00x_000001/outbox">送信済箱</a></li>
+      <li><a href="/webclass/messages.php/course/00x_000001/recyclebox">ゴミ箱</a></li>
+              <li><a href="/webclass/messages.php/course/00x_000001/compose">メッセージ作成</a></li>
+                  </ul>
+
+  <h5>お知らせ</h5>
+  <ul class="nav nav-pills nav-stacked">
+    <li class="active"><a href="/webclass/information.php/course/00x_000001/">一覧</a></li>
+          </ul>
+</div>
+    </div>
+</div>
+
+<div class="tt-overlay" id="tt-overlay">
+  <div class="tt-modal">
+    <div class="tt-head clearfix">
+      <h4>コース選択</h4>
+      <button class="tt-close" id="tt-close" type="button">×</button>
+    </div>
+    <form method="get" action="/webclass/information.php/course/00x_000001/" class="tt-toolbar clearfix" id="tt-toolbar-form">
+      <select class="tt-select" name="ttyear" aria-label="年度">
+        <option value="all" >All</option>
+                  <option value="2027" >2027 年度</option>
+                  <option value="2026" selected>2026 年度</option>
+                  <option value="2025" >2025 年度</option>
+                  <option value="2024" >2024 年度</option>
+                  <option value="2023" >2023 年度</option>
+                  <option value="2022" >2022 年度</option>
+                  <option value="2021" >2021 年度</option>
+                  <option value="2020" >2020 年度</option>
+              </select>
+      <select class="tt-select" name="ttsemester" aria-label="学期">
+        <option value="all" >All</option>
+                  <option value="0" >通年</option>
+                  <option value="1" >前期</option>
+                  <option value="2" selected>後期</option>
+              </select>
+      <input type="text" class="tt-search" id="tt-search" placeholder="検索" autocomplete="off">
+    </form>
+    <div class="tt-body">
+                      <ul class="course-list tt-schedule">
+                      <li class="course-list-section-head tt-day-head">月曜日</li>
+                                          <li class="course-list-section-head tt-period-head">5限</li>
+                            <li class="course-list-item"><a href="/webclass/information.php/course/00x_000001/" data-course="00x_000001" data-name="00x_サンプル科目A">&raquo; 00x_サンプル科目A</a></li>                                        </ul>
+          </div>
+  </div>
+</div>
+
+<script src="/webclass/js/jquery/jquery-3.7.1.min.js"></script>
+<script src="/webclass/js/bootstrap.min.js"></script>
+<script src="/webclass/information.php/assets/info.js"></script>
+<script>
+    /* publisher 既存テンプレが onclick から呼ぶ JS 関数（popup_personaltools.html 経由の置換） */
+    function goURL(url){ window.location.href = url; return false; }
+    function openMessage(file_name){ window.open(file_name); return false; }
+</script>
+</body>
+</html>

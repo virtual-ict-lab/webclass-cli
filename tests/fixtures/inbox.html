@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebClass</title>
+    <link rel="stylesheet" type="text/css" href="/webclass/css/bootstrap_blue.css?time=1700000000">
+    <link rel="stylesheet" type="text/css" href="/webclass/css/webclass.css">
+    <link rel="stylesheet" type="text/css" href="/webclass/messages.php/assets/messages.css">
+</head>
+<body>
+    <nav class="navbar navbar-default tool-window-bar clearfix">
+      <a href="javascript:window.close();" class="close-link navbar-link">» このウィンドウを閉じる</a>
+      <span class="navbar-brand"><span class="brand">WebClass</span><span class="sep">|</span><span class="title">メッセージ / お知らせ</span></span>
+    </nav>
+
+    <div class="ctx-bar clearfix unselected" id="ctx-bar">
+                      <span class="ctx-label">コース：</span>
+        <span class="ctx-name" id="ctx-current">指定しない</span>
+        <button class="ctx-switch" id="ctx-switch">コース選択 ▾</button>
+        <a href="/webclass/messages.php/inbox" class="ctx-reset" id="ctx-reset">× 選択を解除</a>
+          </div>
+
+    <div class="msg-breadcrumb">
+      <button class="breadcrumb-toggle" id="bc-toggle">☰</button>
+      <span class="breadcrumb-text" id="bc-text">メッセージ<span class="sep">&gt;</span>受信箱</span>
+    </div>
+
+    <div class="container-fluid" style="margin-top: 8px;">
+        <div class="row">
+          <div class="col-sm-2 side-nav" id="side-nav">
+  <h5>メッセージ</h5>
+  <ul class="nav nav-pills nav-stacked">
+    <li class="active"><a href="/webclass/messages.php/inbox">受信箱</a></li>
+    <li class=""><a href="/webclass/messages.php/outbox">送信済箱</a></li>
+    <li class=""><a href="/webclass/messages.php/recyclebox">ゴミ箱</a></li>
+          </ul>
+
+    <h5>お知らせ</h5>
+  <ul class="nav nav-pills nav-stacked">
+    <li><a href="/webclass/information.php/">一覧</a></li>
+          </ul>
+  </div>
+          <div class="col-sm-10">
+
+              <form method="POST" action="" id="message-form">
+
+<div class="sm-bars">
+  <div class="sm-pager-bar">          <button class="btn btn-default btn-sm" disabled>最初</button>
+      <button class="btn btn-default btn-sm" disabled>‹ 前へ</button>
+        <span class="page-current"><strong>1</strong> / 1</span>
+          <button class="btn btn-default btn-sm" disabled>次へ ›</button>
+      <button class="btn btn-default btn-sm" disabled>最後</button>
+    </div>
+  <div class="sm-action-bar">
+    <label class="sm-selall"><input type="checkbox" aria-label="すべて選択"
+      onclick="document.querySelectorAll('.sm-msg input[name=\'id[]\']').forEach(function(c){c.checked = event.target.checked;})"></label>
+    <button type="submit" name="RESET_UNREADFLAG" value="1" class="btn btn-default btn-sm">未読に戻す</button>
+    <button type="submit" name="UNSET_UNREADFLAG" value="1" class="btn btn-default btn-sm">既読にする</button>
+    <button type="submit" name="downloadmsg" value="1" class="btn btn-default btn-sm"
+            formaction="/webclass/messages.php/export?acs_=00000000" formtarget="_blank">ダウンロード</button>
+    <button type="submit" name="COMFIRM_SELECTED" value="1" class="btn btn-default btn-sm">削除</button>
+  </div>
+</div>
+
+<div class="toolbar clearfix pc-toolbar">
+  <button type="submit" name="COMFIRM_SELECTED" value="1" class="btn btn-default btn-sm">削除</button>
+  <button type="submit" name="RESET_UNREADFLAG" value="1" class="btn btn-default btn-sm">未読に戻す</button>
+  <button type="submit" name="UNSET_UNREADFLAG" value="1" class="btn btn-default btn-sm">既読にする</button>
+  <button type="submit" name="downloadmsg" value="1" class="btn btn-default btn-sm"
+          formaction="/webclass/messages.php/export?acs_=00000000" formtarget="_blank">ダウンロード</button>
+
+  <span class="pull-right">          <button class="btn btn-default btn-sm" disabled>最初</button>
+      <button class="btn btn-default btn-sm" disabled>‹ 前へ</button>
+        <span class="page-current"><strong>1</strong> / 1</span>
+          <button class="btn btn-default btn-sm" disabled>次へ ›</button>
+      <button class="btn btn-default btn-sm" disabled>最後</button>
+    </span>
+</div>
+
+
+  <div class="pc-msg">
+  <TABLE id="MsgBox" border="0" width="100%" cellpadding="0"><TR><TD bgcolor="#dddddd">
+  <table id="MsgListTable" width="100%" cellspacing="1" cellpadding="3" style="table-layout: fixed;">
+  <thead>
+    <tr>
+      <th nowrap class="bgc_main" style="text-align:center;" width="25"><span class="size3"><input type="checkbox" name="autochecker" value="" aria-label="すべて選択" onclick="document.querySelectorAll('#MsgListTable input[name=\'id[]\']').forEach(function(c){c.checked = event.target.checked;})"></span></th>
+      <th nowrap class="bgc_main" style="text-align:center;"><span class="size3">コース<a href="/webclass/messages.php/inbox?sort=group_name&amp;dir=asc&amp;acs_=00000000" title="昇順にソート"><span class="sorticon">&#9650;</span></a><a href="/webclass/messages.php/inbox?sort=group_name&amp;dir=desc&amp;acs_=00000000" title="降順でソート"><span class="sorticon">&#9660;</span></a></span></th>
+      <th nowrap class="bgc_main" style="text-align:center;"><span class="size3">差出人<a href="/webclass/messages.php/inbox?sort=from&amp;dir=asc&amp;acs_=00000000" title="昇順にソート"><span class="sorticon">&#9650;</span></a><a href="/webclass/messages.php/inbox?sort=from&amp;dir=desc&amp;acs_=00000000" title="降順でソート"><span class="sorticon">&#9660;</span></a></span></th>
+      <th nowrap class="bgc_main" style="text-align:center;"><span class="size3">ユーザID<a href="/webclass/messages.php/inbox?sort=from_id&amp;dir=asc&amp;acs_=00000000" title="昇順にソート"><span class="sorticon">&#9650;</span></a><a href="/webclass/messages.php/inbox?sort=from_id&amp;dir=desc&amp;acs_=00000000" title="降順でソート"><span class="sorticon">&#9660;</span></a></span></th>
+      <th nowrap class="bgc_main" style="text-align:center;"><span class="size3">件名<a href="/webclass/messages.php/inbox?sort=subject&amp;dir=asc&amp;acs_=00000000" title="昇順にソート"><span class="sorticon">&#9650;</span></a><a href="/webclass/messages.php/inbox?sort=subject&amp;dir=desc&amp;acs_=00000000" title="降順でソート"><span class="sorticon">&#9660;</span></a></span></th>
+      <th nowrap class="bgc_main" style="text-align:center;"><span class="size3">添付ファイル<a href="/webclass/messages.php/inbox?sort=attachment&amp;dir=asc&amp;acs_=00000000" title="昇順にソート"><span class="sorticon">&#9650;</span></a><a href="/webclass/messages.php/inbox?sort=attachment&amp;dir=desc&amp;acs_=00000000" title="降順でソート"><span class="sorticon">&#9660;</span></a></span></th>
+      <th nowrap class="bgc_main" style="text-align:center;" width="130"><span class="size3">日付<a href="/webclass/messages.php/inbox?sort=date&amp;dir=asc&amp;acs_=00000000" title="昇順にソート"><span class="sorticon">&#9650;</span></a><a href="/webclass/messages.php/inbox?sort=date&amp;dir=desc&amp;acs_=00000000" title="降順でソート"><span class="sorticon">&#9660;</span></a></span></th>
+    </tr>
+  </thead>
+      <tr class='odd'>
+      <td style="text-align: center;"><input type="checkbox" name="id[]" value="d0000000000000000000000000000003" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></td>
+      <td nowrap><span class=dimgray>00x_サンプル科目B</span></td>
+      <td nowrap><span class=dimgray>00_0XX00:匿名　太郎</span></td>
+      <td nowrap><span class=dimgray>00_0XX00</span></td>
+      <td nowrap><span class=dimgray><a href="/webclass/messages.php/inbox/d0000000000000000000000000000003?page=1&amp;acs_=00000000">レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</a></span></td>
+      <td nowrap><span class=dimgray></span></td>
+      <td style='text-align: center; padding: 0;' nowrap><span class=dimgray>2026/01/01 12:00</span></td>
+    </tr>
+      <tr class='eve'>
+      <td style="text-align: center;"><input type="checkbox" name="id[]" value="d0000000000000000000000000000010" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></td>
+      <td nowrap><span class=dimgray>00x_サンプル科目B</span></td>
+      <td nowrap><span class=dimgray>00_0XX00:匿名　太郎</span></td>
+      <td nowrap><span class=dimgray>00_0XX00</span></td>
+      <td nowrap><span class=dimgray><a href="/webclass/messages.php/inbox/d0000000000000000000000000000010?page=1&amp;acs_=00000000">レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</a></span></td>
+      <td nowrap><span class=dimgray></span></td>
+      <td style='text-align: center; padding: 0;' nowrap><span class=dimgray>2026/01/01 12:00</span></td>
+    </tr>
+      <tr class='odd'>
+      <td style="text-align: center;"><input type="checkbox" name="id[]" value="d0000000000000000000000000000006" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></td>
+      <td nowrap><span class=dimgray>00x_サンプル科目B</span></td>
+      <td nowrap><span class=dimgray>00_0XX00:匿名　太郎</span></td>
+      <td nowrap><span class=dimgray>00_0XX00</span></td>
+      <td nowrap><span class=dimgray><a href="/webclass/messages.php/inbox/d0000000000000000000000000000006?page=1&amp;acs_=00000000">レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</a></span></td>
+      <td nowrap><span class=dimgray></span></td>
+      <td style='text-align: center; padding: 0;' nowrap><span class=dimgray>2026/01/01 12:00</span></td>
+    </tr>
+      <tr class='eve'>
+      <td style="text-align: center;"><input type="checkbox" name="id[]" value="d0000000000000000000000000000013" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></td>
+      <td nowrap><span class=dimgray>00x_サンプル科目C</span></td>
+      <td nowrap><span class=dimgray>00_0XX00:匿名　太郎</span></td>
+      <td nowrap><span class=dimgray>00_0XX00</span></td>
+      <td nowrap><span class=dimgray><a href="/webclass/messages.php/inbox/d0000000000000000000000000000013?page=1&amp;acs_=00000000">レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</a></span></td>
+      <td nowrap><span class=dimgray></span></td>
+      <td style='text-align: center; padding: 0;' nowrap><span class=dimgray>2026/01/01 12:00</span></td>
+    </tr>
+      <tr class='odd'>
+      <td style="text-align: center;"><input type="checkbox" name="id[]" value="d000000000000000000000000000000b" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></td>
+      <td nowrap><span class=dimgray>00x_サンプル科目B</span></td>
+      <td nowrap><span class=dimgray>00_0XX00:匿名　太郎</span></td>
+      <td nowrap><span class=dimgray>00_0XX00</span></td>
+      <td nowrap><span class=dimgray><a href="/webclass/messages.php/inbox/d000000000000000000000000000000b?page=1&amp;acs_=00000000">レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</a></span></td>
+      <td nowrap><span class=dimgray></span></td>
+      <td style='text-align: center; padding: 0;' nowrap><span class=dimgray>2026/01/01 12:00</span></td>
+    </tr>
+    </table>
+  </TD></TR></TABLE>
+  </div>
+
+  <div class="sm-msg">
+          <div class="sm-msg-item ">
+        <label class="sm-check"><input type="checkbox" name="id[]" value="d0000000000000000000000000000003" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></label>
+        <a href="/webclass/messages.php/inbox/d0000000000000000000000000000003" class="sm-msg-link">
+          <span class="sm-date">1/1 12:00</span>
+          <h3>レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</h3>
+          <div class="sm-body">
+00_0XX00:匿名　太郎
+
+ 提出日 : 2026/01/01 12:00
+ 提出者 : 00_0XX00:匿名　太郎</div>
+          <div class="sm-meta">00_0XX00:匿名　太郎</div>
+        </a>
+      </div>
+          <div class="sm-msg-item ">
+        <label class="sm-check"><input type="checkbox" name="id[]" value="d0000000000000000000000000000010" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></label>
+        <a href="/webclass/messages.php/inbox/d0000000000000000000000000000010" class="sm-msg-link">
+          <span class="sm-date">1/1 12:00</span>
+          <h3>レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</h3>
+          <div class="sm-body">
+00_0XX00:匿名　太郎
+
+ 提出日 : 2026/01/01 12:00
+ 提出者 : 00_0XX00:匿名　太郎</div>
+          <div class="sm-meta">00_0XX00:匿名　太郎</div>
+        </a>
+      </div>
+          <div class="sm-msg-item ">
+        <label class="sm-check"><input type="checkbox" name="id[]" value="d0000000000000000000000000000006" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></label>
+        <a href="/webclass/messages.php/inbox/d0000000000000000000000000000006" class="sm-msg-link">
+          <span class="sm-date">1/1 12:00</span>
+          <h3>レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</h3>
+          <div class="sm-body">
+00_0XX00:匿名　太郎
+
+ 提出日 : 2026/01/01 12:00
+ 提出者 : 00_0XX00:匿名　太郎</div>
+          <div class="sm-meta">00_0XX00:匿名　太郎</div>
+        </a>
+      </div>
+          <div class="sm-msg-item ">
+        <label class="sm-check"><input type="checkbox" name="id[]" value="d0000000000000000000000000000013" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></label>
+        <a href="/webclass/messages.php/inbox/d0000000000000000000000000000013" class="sm-msg-link">
+          <span class="sm-date">1/1 12:00</span>
+          <h3>レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</h3>
+          <div class="sm-body">
+00_0XX00:匿名　太郎
+
+ 提出日 : 2026/01/01 12:00
+ 提出者 : 00_0XX00:匿名　太郎</div>
+          <div class="sm-meta">00_0XX00:匿名　太郎</div>
+        </a>
+      </div>
+          <div class="sm-msg-item ">
+        <label class="sm-check"><input type="checkbox" name="id[]" value="d000000000000000000000000000000b" aria-label="レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]"></label>
+        <a href="/webclass/messages.php/inbox/d000000000000000000000000000000b" class="sm-msg-link">
+          <span class="sm-date">1/1 12:00</span>
+          <h3>レポートを受け取りました [サンプル科目 / サンプル課題 / attachment.png / 10.00 KB]</h3>
+          <div class="sm-body">
+00_0XX00:匿名　太郎
+
+ 提出日 : 2026/01/01 12:00
+ 提出者 : 00_0XX00:匿名　太郎</div>
+          <div class="sm-meta">00_0XX00:匿名　太郎</div>
+        </a>
+      </div>
+      </div>
+
+</form>
+
+          </div>
+        </div>
+    </div>
+
+    <!-- スマホ用 上から drawer -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <div class="top-drawer" id="top-drawer">
+        <div class="drawer-head">
+            <span class="drawer-title">メニュー</span>
+            <button class="drawer-close" id="drawer-close" type="button" aria-label="閉じる">×</button>
+        </div>
+        <div class="drawer-body">
+            <div class="col-sm-2 side-nav" id="side-nav">
+  <h5>メッセージ</h5>
+  <ul class="nav nav-pills nav-stacked">
+    <li class="active"><a href="/webclass/messages.php/inbox">受信箱</a></li>
+    <li class=""><a href="/webclass/messages.php/outbox">送信済箱</a></li>
+    <li class=""><a href="/webclass/messages.php/recyclebox">ゴミ箱</a></li>
+          </ul>
+
+    <h5>お知らせ</h5>
+  <ul class="nav nav-pills nav-stacked">
+    <li><a href="/webclass/information.php/">一覧</a></li>
+          </ul>
+  </div>
+        </div>
+    </div>
+
+    <div class="tt-overlay" id="tt-overlay">
+  <div class="tt-modal">
+    <div class="tt-head clearfix">
+      <h4>コース選択</h4>
+      <button class="tt-close" id="tt-close" type="button">×</button>
+    </div>
+    <form method="get" action="/webclass/messages.php/inbox" class="tt-toolbar clearfix" id="tt-toolbar-form">
+      <select class="tt-select" name="ttyear" aria-label="年度">
+        <option value="all" >All</option>
+                  <option value="2027" >2027 年度</option>
+                  <option value="2026" selected>2026 年度</option>
+                  <option value="2025" >2025 年度</option>
+                  <option value="2024" >2024 年度</option>
+                  <option value="2023" >2023 年度</option>
+                  <option value="2022" >2022 年度</option>
+                  <option value="2021" >2021 年度</option>
+                  <option value="2020" >2020 年度</option>
+              </select>
+      <select class="tt-select" name="ttsemester" aria-label="学期">
+        <option value="all" >All</option>
+                  <option value="0" >通年</option>
+                  <option value="1" >前期</option>
+                  <option value="2" selected>後期</option>
+              </select>
+      <input type="text" class="tt-search" id="tt-search" placeholder="検索" autocomplete="off">
+    </form>
+    <div class="tt-body">
+                      <ul class="course-list tt-schedule">
+                      <li class="course-list-section-head tt-day-head">月曜日</li>
+                                          <li class="course-list-section-head tt-period-head">5限</li>
+                            <li class="course-list-item"><a href="/webclass/messages.php/course/00x_000001/inbox" data-course="00x_000001" data-name="00x_サンプル科目A">&raquo; 00x_サンプル科目A</a></li>                                        </ul>
+          </div>
+  </div>
+</div>
+
+    <script src="/webclass/js/jquery/jquery-3.7.1.min.js"></script>
+    <script src="/webclass/js/bootstrap.min.js"></script>
+    <script src="/webclass/messages.php/assets/messages.js"></script>
+    <script>
+        document
+            .getElementById('message-form')
+            ?.addEventListener('submit', function (event) {
+                const submitter = event.submitter;
+
+                if (submitter?.name !== 'downloadmsg') {
+                    return;
+                }
+
+                const checkedMessage = this.querySelector(
+                    'input[name="id[]"]:checked'
+                );
+
+                if (checkedMessage === null) {
+                    event.preventDefault();
+                    alert('メッセージを選択してください');
+                }
+            });
+    </script>
+</body>
+</html>
